@@ -2,3 +2,4 @@ db.sqlite3
 .venv/
 language_cards/__pycache__/
 .idea/
+core/__pycache__/
