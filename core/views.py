@@ -1,9 +1,10 @@
 from django.contrib.auth import logout
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
+from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from core.forms import SignInForm
+from core.forms import SignInForm, SignUpForm
 
 
 class IndexView(View):
@@ -11,9 +12,21 @@ class IndexView(View):
         return render(request=request, template_name='index.html')
 
 
-class SignUpView(View):
-    def get(self, request):
-        return render(request=request, template_name='signup.html')
+class SignUpView(TemplateView):
+    template_name = 'signup.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = SignUpForm
+        return context
+
+    def post(self, request):
+        form = SignUpForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+        return self.render_to_response(context={'form': form})
 
 
 class SignInView(FormView):
