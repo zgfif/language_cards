@@ -20,6 +20,7 @@ class SignInForm(forms.Form):
     def auth(self, request):
         user = authenticate(request, **self.cleaned_data)
         if user is not None:
+            request.session['greeting'] = 'Hello! '
             login(request, user)
         return user
 

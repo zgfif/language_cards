@@ -9,7 +9,11 @@ from core.forms import SignInForm, SignUpForm
 
 class IndexView(View):
     def get(self, request):
-        return render(request=request, template_name='index.html')
+        context = dict()
+        context['message'] = request.session.get('message', 'No message')
+        context['greeting'] = request.session.get('greeting', 'No')
+
+        return render(request=request, context=context, template_name='index.html')
 
 
 class SignUpView(TemplateView):
@@ -25,6 +29,7 @@ class SignUpView(TemplateView):
 
         if form.is_valid():
             form.save()
+            request.session['message'] = 'Congratulations! You have successfully registered!'
             return redirect('/')
         return self.render_to_response(context={'form': form})
 

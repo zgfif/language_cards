@@ -5,8 +5,15 @@
     <title>index page</title>
 </head>
 <body>
+    {% if message %}
+        {{ message }}
+    {% endif %}
   {% if user.is_authenticated %}
-      <p>{{ user.username }}</p>
+      <p>{% if greeting %}
+          {{ greeting }}
+          {% endif %}
+          {{ user.username }}
+      </p>
       <p>
         <a href="/signout">Sign out</a>
       </p>
