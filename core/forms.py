@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.auth.models import User
 from django.core import validators
@@ -20,7 +21,7 @@ class SignInForm(forms.Form):
     def auth(self, request):
         user = authenticate(request, **self.cleaned_data)
         if user is not None:
-            request.session['greeting'] = 'Hello! '
+            messages.success(request, f'Hello! {user}')
             login(request, user)
         return user
 

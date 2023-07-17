@@ -5,13 +5,17 @@
     <title>index page</title>
 </head>
 <body>
-    {% if message %}
-        {{ message }}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+            {{ message }}
+        </li>
+        {% endfor %}
+    </ul>
     {% endif %}
   {% if user.is_authenticated %}
-      <p>{% if greeting %}
-          {{ greeting }}
-          {% endif %}
+      <p>
           {{ user.username }}
       </p>
       <p>
