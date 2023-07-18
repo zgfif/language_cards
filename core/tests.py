@@ -89,3 +89,13 @@ class SignInViewTests(TestCase):
         response = self.client.post('/signin', {'username': 'pasha', 'password': '1asdfX'}, follow=True)
         self.assertContains(response, text='Hello', status_code=200)
         self.assertContains(response, text='Sign out', status_code=200)
+
+
+class LogOutViewTests(TestCase):
+    def test_logout(self):
+        User.objects.create_user(username='pasha', password='1asdfX')
+        self.client.login(username='pasha', password='1asdfX')
+        response_before_logout = self.client.get('/')
+        self.assertContains(response_before_logout, text='Sign out', status_code=200)
+        response = self.client.get('/signout')
+        self.assertContains(response, text='Sign in', status_code=200)
