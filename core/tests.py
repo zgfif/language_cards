@@ -162,3 +162,31 @@ class AddWordViewTests(TestCase):
         response = self.client.post('/add_word', word_details)
         failure_message = f'You have not added translation for {word_details["word"]}!'
         self.assertContains(response, text=failure_message, status_code=200)
+
+    def test_adding_word_to_dictionary_without_sentence(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': '',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        self.assertContains(response, text=success_message, status_code=200)
+
+    def test_adding_word_to_dictionary_without_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': '',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details)
+        failure_message = f'You have not entered any word!'
+        self.assertContains(response, text=failure_message, status_code=200)
