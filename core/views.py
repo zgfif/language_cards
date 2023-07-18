@@ -46,3 +46,11 @@ class SignOutView(View):
     def get(self, request):
         logout(self.request)
         return render(request=request, template_name='index.html')
+
+
+class AccountView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return render(request=request, template_name='profile.html')
+        return redirect('/signin')
+
