@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -99,3 +101,19 @@ class LogOutViewTests(TestCase):
         self.assertContains(response_before_logout, text='Sign out', status_code=200)
         response = self.client.get('/signout')
         self.assertContains(response, text='Sign in', status_code=200)
+
+
+class AccountViewTests(TestCase):
+    def test_opening_profile_without_authorization(self):
+        User.objects.create_user(username='pasha', password='1asdfX')
+        response = self.client.get('/profile', follow=True)
+        self.assertContains(response, text='username/email', status_code=200)
+        self.assertContains(response, text='password')
+
+    def test_access_to_account_with_authorization(self):
+        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
+        self.client.login(username='pasha', password='1asdfX')
+        response = self.client.get('/profile')
+        self.assertContains(response, text='pasha', status_code=200)
+        self.assertContains(response, text='pasha@gmail.com', status_code=200)
+        self.assertContains(response, text=datetime.date.today())
