@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from core.models import Word
 
 
 class IndexViewTests(TestCase):
@@ -117,3 +118,78 @@ class AccountViewTests(TestCase):
         self.assertContains(response, text='pasha', status_code=200)
         self.assertContains(response, text='pasha@gmail.com', status_code=200)
         self.assertContains(response, text=datetime.date.today())
+
+
+class AddWordViewTests(TestCase):
+    def test_access_to_form_for_not_authorized_user(self):
+        response = self.client.get('/add_word', follow=True)
+        self.assertContains(response, text='username/email', status_code=200)
+        self.assertContains(response, text='password')
+
+    def test_access_to_form_for_authorized_user(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+        response = self.client.get('/add_word')
+        self.assertContains(response, text='word', status_code=200)
+        self.assertContains(response, text='translation')
+        self.assertContains(response, text='sentence')
+        self.assertContains(response, text='add')
+
+    def test_adding_word_to_dictionary(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
+        self.assertContains(response, text=success_message, status_code=200)
+
+    def test_adding_word_to_dictionary_without_translation(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': 'smallpox',
+            'translation': '',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details)
+        failure_message = f'You have not added translation for {word_details["word"]}!'
+        self.assertContains(response, text=failure_message, status_code=200)
+
+    def test_adding_word_to_dictionary_without_sentence(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': '',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
+        self.assertContains(response, text=success_message, status_code=200)
+
+    def test_adding_word_to_dictionary_without_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        word_details = {
+            'word': '',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details)
+        failure_message = 'You have not entered any word!'
+        self.assertContains(response, text=failure_message, status_code=200)

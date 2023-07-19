@@ -4,3 +4,4 @@ language_cards/__pycache__/
 .idea/
 core/__pycache__/
 core/migrations/__pycache__/__init__.cpython-38.pyc
+core/migrations/__pycache__/
