@@ -27,4 +27,5 @@ urlpatterns = [
     path('signin', views.SignInView.as_view()),
     path('signout', views.SignOutView.as_view()),
     path('profile', views.AccountView.as_view()),
+    path('add_word', views.AddWordView.as_view()),
 ]

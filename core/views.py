@@ -5,7 +5,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from core.forms import SignInForm, SignUpForm
+from core.forms import SignInForm, SignUpForm, AddWordForm
 
 
 class IndexView(View):
@@ -54,3 +54,24 @@ class AccountView(View):
             return render(request=request, template_name='profile.html')
         return redirect('/signin')
 
+
+class AddWordView(TemplateView):
+    template_name = 'add_word.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('/signin')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = AddWordForm()
+        return context
+
+    def post(self, request):
+        form = AddWordForm(request.POST)
+        if form.is_valid():
+            form.save(request)
+            return redirect('/')
+
+        return self.render_to_response(context={'form': form})

@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.auth.models import User
 from django.core import validators
+from core.models import Word
 
 
 class SignInForm(forms.Form):
@@ -47,3 +48,27 @@ class SignUpForm(forms.Form):
     def save(self):
         self.cleaned_data.pop('password_confirmation')
         get_user_model().objects.create_user(**self.cleaned_data)
+
+
+class AddWordForm(forms.Form):
+    word = forms.CharField(label='word')
+    translation = forms.CharField(label='translation')
+    sentence = forms.CharField(label='sentence', required=False)
+
+    def clean(self):
+        word = self.cleaned_data.get('word')
+        translation = self.cleaned_data.get('translation')
+
+        if not word:
+            raise forms.ValidationError('You have not entered any word!')
+        if word and not translation:
+            raise forms.ValidationError(f'You have not added translation for {word}!')
+
+    def save(self, request):
+        try:
+            word = Word.objects.create(added_by=request.user, **self.cleaned_data)
+        except:
+            messages.error(request, 'Something went wrong!')
+        else:
+            messages.success(request, f'{self.cleaned_data.get("word")} was successfully added to your learn list!')
+

@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from core.models import Word
 
 
 class IndexViewTests(TestCase):
@@ -121,7 +122,7 @@ class AccountViewTests(TestCase):
 
 class AddWordViewTests(TestCase):
     def test_access_to_form_for_not_authorized_user(self):
-        response = self.client.get('/add_word')
+        response = self.client.get('/add_word', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
@@ -147,6 +148,7 @@ class AddWordViewTests(TestCase):
 
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_translation(self):
@@ -175,6 +177,7 @@ class AddWordViewTests(TestCase):
 
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_word(self):
@@ -188,5 +191,5 @@ class AddWordViewTests(TestCase):
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details)
-        failure_message = f'You have not entered any word!'
+        failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
