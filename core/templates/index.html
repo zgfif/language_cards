@@ -17,6 +17,7 @@
   {% if user.is_authenticated %}
       <p>
           <a href="/profile">{{ user.username }}</a>|
+          <a href="/words">words</a>
           <a href="/signout">Sign out</a>
       </p>
   {% else %}

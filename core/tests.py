@@ -193,3 +193,48 @@ class AddWordViewTests(TestCase):
         response = self.client.post('/add_word', word_details)
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
+
+
+class WordListViewTests(TestCase):
+    def test_access_without_authorization(self):
+        response = self.client.get('/words', follow=True)
+        self.assertContains(response, text='username/email', status_code=200)
+        self.assertContains(response, text='password')
+
+    def test_without_any_words(self):
+        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
+        self.client.login(username='pasha', password='1asdfX')
+        response = self.client.get('/words')
+        self.assertContains(response, text='you have not any words yet:)', status_code=200)
+
+    def test_absense_of_words_related_to_other_user(self):
+        user1 = User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
+        user2 = User.objects.create_user(username='vadim', password='G?1wraas4', email='vadim@gmail.com')
+
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        flu = {
+            'word': 'flu',
+            'translation': 'грипп',
+            'sentence': 'I had a bad case of the flu.',
+        }
+
+        fever = {
+            'word': 'fever',
+            'translation': 'лихорадка',
+            'sentence': 'I would take aspirin to help me with the pain and reduce the fever',
+        }
+
+        Word.objects.create(added_by=user1, **smallpox)
+        Word.objects.create(added_by=user1, **flu)
+        Word.objects.create(added_by=user2, **fever)
+
+        self.client.login(username='pasha', password='1asdfX')
+        response = self.client.get('/words')
+        self.assertContains(response, status_code=200, text='smallpox')
+        self.assertContains(response, status_code=200, text='flu')
+        self.assertNotContains(response, status_code=200, text='fever')
