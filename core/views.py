@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from core.forms import SignInForm, SignUpForm, AddWordForm
+from core.models import Word
 
 
 class IndexView(View):
@@ -75,3 +76,11 @@ class AddWordView(TemplateView):
             return redirect('/')
 
         return self.render_to_response(context={'form': form})
+
+
+class WordListView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            context = {'words': Word.objects.filter(added_by=request.user)}
+            return render(request, template_name='words.html', context=context)
+        return redirect('/signin')

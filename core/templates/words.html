@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>your words</title>
+</head>
+<body>
+    {% if words %}
+        <table>
+            <th>
+                <td>eng</td>
+                <td>ru</td>
+                <td>sentence</td>
+            </th>
+            {% for word in words %}
+            <tr>
+                <td>{{ word.word }}</td>
+                <td>{{ word.translation }}</td>
+                <td>{{ word.sentence }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>you have not any words yet:)</p>
+    {% endif %}
+    <p><a href="/add_word">add</a></p>
+</body>
+</html>
