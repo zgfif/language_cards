@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from core.models import Word
 
-
 class IndexViewTests(TestCase):
     def test_have_recent_words(self):
         response = self.client.get('/')
