@@ -1,3 +1,5 @@
+{% load gTTS %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,9 +16,12 @@
             </th>
             {% for word in words %}
             <tr>
-                <td>{{ word.word }}</td>
+                <td><b>{{ word.word }}</b></td>
                 <td>{{ word.translation }}</td>
                 <td>{{ word.sentence }}</td>
+                <td>
+                    <audio src="{% say 'en-us'  word.word %}" controls></audio>
+                </td>
             </tr>
             {% endfor %}
         </table>

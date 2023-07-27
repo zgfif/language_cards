@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from core import views
 from django.contrib.auth.views import LoginView
@@ -29,4 +29,8 @@ urlpatterns = [
     path('profile', views.AccountView.as_view()),
     path('add_word', views.AddWordView.as_view()),
     path('words', views.WordListView.as_view()),
+    # for unauthorized access dynamic translation
+    path('gtts/', include('gTTS.urls')),
+    # for user authorized dynamic translation
+    path('gtts_auth/', include('gTTS.urls_auth')),
 ]
