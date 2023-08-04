@@ -1,13 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>signin</title>
-    </head>
-    <body>
+{% extends 'base.html' %}
+
+{% block title %}
+    Sign in
+{% endblock %}
+
+<!--form to signin-->
+{% block content %}
     <form method="post">{% csrf_token %}
         {{ form }}
         <button type="submit">Enter</button>
     </form>
-    </body>
-</html>
+{% endblock %}
+

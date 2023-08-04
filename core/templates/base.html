@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+        <!--   you can override title in each page -->
+        <title>{% block title %}language cards{% endblock %}</title>
+        {% block css %}{% endblock %}
+    </head>
+    <body>
+        <header>
+
+            <!--            block for instant messages -->
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <!--        authentication authorization block -->
+            {% if user.is_authenticated %}
+              <p>
+                  <a href="/profile">{{ user.username }}</a>|
+                  <a href="/words">words</a>
+                  <a href="/signout">Sign out</a>
+              </p>
+            {% else %}
+              <p>
+                <a href="/signup">Sign up</a>|
+                <a href="/signin">Sign in</a>
+              </p>
+            {% endif %}
+        </header>
+
+        <!--    content of each page -->
+        {% block content %}{% endblock %}
+
+        <!--    block for JavaScript-->
+        {% block js %}{% endblock %}
+    </body>
+</html>
