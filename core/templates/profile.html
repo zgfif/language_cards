@@ -1,15 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ user }}'s Profile</title>
-</head>
-<body>
-    <h1>Your profile</h1>
-    <p>username: {{ user }}</p>
-    <p>email: {{ user.email }}</p>
-    <p>registered {{ user.date_joined|date:"Y-m-d" }}</p>
-    <p>count of added words: XXXX</p>
-    <p><a href="/words">added words</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ user }}'s profile
+{% endblock %}
+
+<!--total information about user-->
+{% block content %}
+        <h1>Your profile</h1>
+        <p>username: {{ user }}</p>
+        <p>email: {{ user.email }}</p>
+        <p>registered {{ user.date_joined|date:"Y-m-d" }}</p>
+        <p>count of added words: XXXX</p>
+        <p><a href="/words">added words</a></p>
+{% endblock %}

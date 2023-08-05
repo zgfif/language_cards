@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>add_word</title>
-</head>
-<body>
-    <form method="post"> {% csrf_token %}
-        <table>
-            {{ form }}
-        </table>
-        <button type="submit">Add</button>
-    </form>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+        <form method="post"> {% csrf_token %}
+            <table>
+                {{ form }}
+            </table>
+            <button type="submit">add</button>
+        </form>
+{% endblock %}

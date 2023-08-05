@@ -1,13 +1,9 @@
-{% load gTTS %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>your words</title>
-</head>
-<body>
+
+{% block content %}
     {% if words %}
+        {% load gTTS %}
         <table>
             <th>
                 <td>eng</td>
@@ -15,19 +11,20 @@
                 <td>sentence</td>
             </th>
             {% for word in words %}
-            <tr>
-                <td><b>{{ word.word }}</b></td>
-                <td>{{ word.translation }}</td>
-                <td>{{ word.sentence }}</td>
-                <td>
-                    <audio src="{% say 'en-us'  word.word %}" controls></audio>
-                </td>
-            </tr>
+                <tr>
+                    <td><b>{{ word.word }}</b></td>
+                    <td>{{ word.translation }}</td>
+                    <td>{{ word.sentence }}</td>
+                    <td>
+
+                        <audio src="{% say 'en-us'  word.word %}" controls></audio>
+                    </td>
+                </tr>
             {% endfor %}
         </table>
     {% else %}
         <p>you have not any words yet:)</p>
     {% endif %}
     <p><a href="/add_word">add</a></p>
-</body>
-</html>
+
+{% endblock %}
