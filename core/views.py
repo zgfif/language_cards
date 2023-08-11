@@ -84,3 +84,10 @@ class WordListView(View):
             context = {'words': Word.objects.filter(added_by=request.user)}
             return render(request, template_name='words.html', context=context)
         return redirect('/signin')
+
+
+class LearningPageView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return render(request, template_name='learning.html')
+        return redirect('/signin')

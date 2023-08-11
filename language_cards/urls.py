@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 from core import views
-from django.contrib.auth.views import LoginView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +32,5 @@ urlpatterns = [
     path('gtts/', include('gTTS.urls')),
     # for user authorized dynamic translation
     path('gtts_auth/', include('gTTS.urls_auth')),
+    path('learn', views.LearningPageView.as_view()),
 ]
