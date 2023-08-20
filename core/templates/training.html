@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <div id="word">
+        chair
+    </div>
+    <div id="translated">
+        стул
+    </div>
+    <div>
+        <label for="guess">Translate:</label>
+        <input id="guess" name="guess" type="text">
+        <button type="button" id="checkButton">check</button>
+    </div>
+{% endblock content %}
+
+
+{% block js %}
+    <script src="{% static 'core/training.js' %}"></script>
+{% endblock js %}

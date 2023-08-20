@@ -33,4 +33,5 @@ urlpatterns = [
     path('gtts/', include('gTTS.urls')),
     # for user authorized dynamic translation
     path('gtts_auth/', include('gTTS.urls_auth')),
+    path('learn_words', views.LearnView.as_view()),
 ]
