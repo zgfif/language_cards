@@ -89,5 +89,6 @@ class WordListView(View):
 class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            return render(request, template_name='training.html')
+            context = {'words': list(Word.objects.filter(added_by=request.user).values())}
+            return render(request, template_name='training.html', context=context)
         return redirect('/signin')

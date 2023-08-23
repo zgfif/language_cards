@@ -2,18 +2,29 @@
 
 {% load static %}
 
+{% block css %}
+    <link rel="stylesheet" href="{% static 'core/training.css' %}">
+{% endblock %}
+
 {% block content %}
-    <div id="word">
-        chair
+    {{ words|json_script:'wordsdata' }}
+
+    <button type="button" id="startTrainingButton">start training</button>
+
+    <div id="trainingBlock"  class="asjdf;l asjdlf;kajsdf jalskdfj hiddenDiv">
+        <div id="word">
+            <span>chair</span>
+        </div>
+        <div id="translated">
+            <span>стул</span>
+        </div>
+        <div>
+            <label for="guess">Translate:</label>
+            <input id="guess" name="guess" type="text">
+            <button type="button" id="checkButton">check</button>
+        </div>
     </div>
-    <div id="translated">
-        стул
-    </div>
-    <div>
-        <label for="guess">Translate:</label>
-        <input id="guess" name="guess" type="text">
-        <button type="button" id="checkButton">check</button>
-    </div>
+
 {% endblock content %}
 
 
