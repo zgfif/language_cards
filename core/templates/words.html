@@ -16,13 +16,13 @@
                     <td>{{ word.translation }}</td>
                     <td>{{ word.sentence }}</td>
                     <td>
-
                         <audio src="{% say 'en-us'  word.word %}" controls></audio>
                     </td>
                 </tr>
             {% endfor %}
         </table>
-        <a href="/learn_words">train words</a>
+        <a href="/learn_word/en-ru/{{ words.first.id }}">train words(eng-ru)</a>
+        <a href="/learn_word/ru-en/{{ words.first.id }}">train words(ru-eng)</a>
     {% else %}
         <p>you have not any words yet:)</p>
     {% endif %}

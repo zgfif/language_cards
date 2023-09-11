@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView
@@ -11,7 +12,9 @@ from core.models import Word
 
 class IndexView(View):
     def get(self, request):
-        return render(request=request, template_name='index.html')
+        context = {'words': Word.objects.filter(added_by=request.user.id)} if request.user.is_authenticated else {'words': []}
+
+        return render(request=request, template_name='index.html', context=context)
 
 
 class SignUpView(TemplateView):
@@ -81,7 +84,12 @@ class AddWordView(TemplateView):
 class WordListView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            context = {'words': Word.objects.filter(added_by=request.user)}
+            words = Word.objects.filter(added_by=request.user)
+            context = {'words': words}
+
+            ids = list(words.values_list('id', flat=True))
+
+            request.session['word_ids'] = ids
             return render(request, template_name='words.html', context=context)
         return redirect('/signin')
 
@@ -89,6 +97,29 @@ class WordListView(View):
 class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            context = {'words': list(Word.objects.filter(added_by=request.user).values())}
+            return render(request, template_name='training.html')
+        return redirect('/signin')
+
+
+class FromEng(View):
+    def get(self, request, id):
+        ids = request.session.get('word_ids')
+        new_index = ids.index(id) + 1 if ids[-1] != id else 0
+
+        if request.user.is_authenticated:
+            word = Word.objects.filter(id=id, added_by=request.user.id)[0]
+            context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'ru'}
+            return render(request, template_name='training.html', context=context)
+        return redirect('/signin')
+
+
+class FromRu(View):
+    def get(self, request, id):
+        ids = request.session.get('word_ids')
+        new_index = ids.index(id) + 1 if ids[-1] != id else 0
+
+        if request.user.is_authenticated:
+            word = Word.objects.filter(id=id, added_by=request.user.id)[0]
+            context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'eng'}
             return render(request, template_name='training.html', context=context)
         return redirect('/signin')

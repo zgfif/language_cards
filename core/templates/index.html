@@ -11,5 +11,13 @@
       sheets containing Lorem Ipsum passages, and more recently with desktop publishing
       software like Aldus PageMaker including versions of Lorem Ipsum.
     </p>
+    <p>
+        {% if words %}
+        {{ words }}
+            <h3><a href="/training">train new words</a></h3>
+        {% else %}
+            <h3>nothing to train</h3>
+        {% endif %}
+    </p>
     <h1>Recently added words</h1>
 {% endblock %}

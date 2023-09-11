@@ -33,5 +33,7 @@ urlpatterns = [
     # for user authorized dynamic translation
     path('gtts_auth/', include('gTTS.urls_auth')),
     path('learn_words', views.LearningPageView.as_view()),
+    path('learn_word/en-ru/<int:id>/', views.FromEng.as_view()),
+    path('learn_word/ru-en/<int:id>/', views.FromRu.as_view()),
 
 ]

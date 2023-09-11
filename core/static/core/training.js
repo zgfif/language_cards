@@ -1,69 +1,26 @@
-//show html element
-function showHtmlElement(element) {
-    element.classList.remove('hiddenDiv')
-    element.classList.add('shownDiv')
-}
+const entered_word = document.querySelector('#guess');
+const correct_word = document.querySelector('#translated span').textContent;
+const check_button = document.querySelector('#checkButton');
 
-//hide html element
-function hideHtmlElement(element) {
-    element.classList.add('hiddenDiv')
-    element.classList.remove('shownDiv')
-}
+check_button.addEventListener('click', function () {
+    let message = 'Sorry. It is incorrect :('
 
-
-// toggle visibility of element
-function toggleVisibilityOfCard() {
-    const card = document.getElementById('trainingBlock')
-    const classes = card.classList
-
-    if (classes.contains('hiddenDiv')) {
-        showHtmlElement(card)
-    } else {
-        hideHtmlElement(card)
+    if (entered_word.value == correct_word) {
+        message = 'It is correct!!!';
+        show_sentence_example();
     }
+
+    show_message(message);
+}, false);
+
+
+function show_message(text='') {
+    const message_div = document.querySelector('#wordResult');
+    message_div.textContent = text;
 }
 
-
-// function to check if translated is equal to entered word
-function checkTranslation() {
-    const translation = document.querySelector('#translated span').textContent;
-    showHtmlElement(document.querySelector('#translated'))
-
-    const entered = document.getElementById('guess').value;
-
-    if (translation == entered) {
-        console.log('Correct');
-
-
-    } else {
-        console.log('Incorrect');
-    }
-    document.getElementById('guess').value = '';
-    showNextCard();
+function show_sentence_example() {
+    const sentence_div = document.querySelector('#sentence');
+    sentence_div.classList.remove('hiddenDiv');
+    sentence_div.classList.add('shownDiv');
 }
-
-// event that run checking translation
-const check_button = document.getElementById('checkButton');
-check_button.addEventListener("click", checkTranslation, false);
-
-
-// event that shows and hides the "start training" button
-const start_button = document.getElementById('startTrainingButton');
-const training_div = document.getElementById('trainingBlock')
-start_button.addEventListener('click', toggleVisibilityOfCard, false);
-
-
-
-// return the list of learning words
-function retrieveWords() {
-    const cards_data = document.getElementById('wordsdata').textContent;
-    return Array(JSON.parse(cards_data))[0]
-}
-
-// fill the card with information
-function fillCard(know, dontKnow) {
-    document.querySelector('#word span').textContent = know;
-    document.querySelector('#translated span').textContent = dontKnow;
-}
-
-fillCard('стол', 'table')
