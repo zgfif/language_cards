@@ -1,0 +1,11 @@
+ a {
+    color: red
+ }
+
+ .hiddenDiv {
+    display: none;
+ }
+
+ .shownDiv {
+    display: block;
+ }

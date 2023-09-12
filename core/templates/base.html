@@ -2,9 +2,11 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <!--   you can override title in each page -->
         <title>{% block title %}language cards{% endblock %}</title>
+
+        <!--       you can connect your css files here-->
         {% block css %}{% endblock %}
     </head>
     <body>
@@ -23,6 +25,7 @@
             <!--        authentication authorization block -->
             {% if user.is_authenticated %}
               <p>
+                  <a href="/">Home</a>
                   <a href="/profile">{{ user.username }}</a>|
                   <a href="/words">words</a>
                   <a href="/signout">Sign out</a>

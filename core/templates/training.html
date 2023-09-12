@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load gTTS %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'core/training.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% if direction == 'ru' %}
+        <h1>card for word (en-ru)</h1>
+        {% include 'snippets/en_ru_card.html' %}
+    {% else %}
+        <h1>card for word (ru-en)</h1>
+        {% include 'snippets/ru_en_card.html' %}
+    {% endif %}
+{% endblock %}
+
+{% block js %}
+    <script src="{% static 'core/training.js' %}"></script>
+{% endblock js %}

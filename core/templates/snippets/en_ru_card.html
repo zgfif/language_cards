@@ -1,0 +1,26 @@
+{% load gTTS %}
+
+<div id="card" class="block">
+    <div id="word">
+            <span>{{ word.word }}</span>
+    </div>
+    <div id="translated" class="hiddenDiv">
+            <span>{{ word.translation }}</span>
+    </div>
+    <div>
+        <audio src="{% say 'en-us'  word.word %}" controls autoplay></audio>
+    </div>
+        <div id="sentence" class="hiddenDiv">
+            <span>{{ word.sentence }}</span>
+        </div>
+    <div>
+        <input id="guess" name="guess" type="text">
+        <p>
+            {% if word_ids|length > 0 %}
+                <a href="/learn_word/en-ru/{{ next_id }}"><button type="button" id="nextButton">next</button></a>
+            {% endif %}
+            <button type="button" id="checkButton">check</button>
+            <div id="wordResult"></div>
+        </p>
+    </div>
+</div>

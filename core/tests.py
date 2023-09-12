@@ -237,3 +237,18 @@ class WordListViewTests(TestCase):
         self.assertContains(response, status_code=200, text='smallpox')
         self.assertContains(response, status_code=200, text='flu')
         self.assertNotContains(response, status_code=200, text='fever')
+
+
+class LearningPageViewTests(TestCase):
+    def test_opening_learning_page_without_authorization(self):
+        response = self.client.get('/learn_words', follow=True)
+        self.assertContains(response, text='username/email', status_code=200)
+        self.assertContains(response, text='password')
+
+    def test_opening_learning_page_after_authorization(self):
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        User.objects.create_user(**credentials)
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        response = self.client.get('/learn_words')
+        self.assertContains(response, status_code=200, text='start training')
+        self.assertNotContains(response, text='username/password')
