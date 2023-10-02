@@ -2,6 +2,8 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+
+from core.lib.word_ids import WordIds
 from core.models import Word
 
 class IndexViewTests(TestCase):
@@ -241,14 +243,78 @@ class WordListViewTests(TestCase):
 
 class LearningPageViewTests(TestCase):
     def test_opening_learning_page_without_authorization(self):
-        response = self.client.get('/learn_words', follow=True)
+        response = self.client.get('/training', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
-    def test_opening_learning_page_after_authorization(self):
+    def test_opening_learning_page_after_authorization_with_words(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        user = User.objects.create_user(**credentials)
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        Word.objects.create(**smallpox, added_by=user)
+        response = self.client.get('/training')
+        self.assertContains(response, status_code=200, text='start (en-ru)')
+        self.assertContains(response, status_code=200, text='start (ru-en)')
+        self.assertNotContains(response, text='username/password')
+
+    def test_opening_learning_page_after_authorization_without_words(self):
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         User.objects.create_user(**credentials)
         self.client.login(username=credentials['username'], password=credentials['password'])
-        response = self.client.get('/learn_words')
-        self.assertContains(response, status_code=200, text='start training')
+        response = self.client.get('/training')
+        self.assertNotContains(response, status_code=200, text='start (en-ru)')
+        self.assertNotContains(response, status_code=200, text='start (ru-en)')
+        self.assertContains(response, status_code=200, text="You haven't word yet :(")
         self.assertNotContains(response, text='username/password')
+
+    def test_en_ru_card(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        user = User.objects.create_user(**credentials)
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        word = Word.objects.create(**smallpox, added_by=user)
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+
+        self.client.get('/training')
+
+        response = self.client.get(f'/learn_word/en-ru/{word.id}', follow=True)
+
+        self.assertContains(response, status_code=200, text='smallpox')
+        self.assertContains(response, status_code=200, text='(en-ru)')
+
+    def test_en_ru_card(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        user = User.objects.create_user(**credentials)
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        word = Word.objects.create(**smallpox, added_by=user)
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+
+        self.client.get('/training')
+
+        response = self.client.get(f'/learn_word/ru-en/{word.id}', follow=True)
+
+        self.assertContains(response, status_code=200, text='smallpox')
+        self.assertContains(response, status_code=200, text='(ru-en)')
