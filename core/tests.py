@@ -3,8 +3,8 @@ import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from core.lib.word_ids import WordIds
 from core.models import Word
+
 
 class IndexViewTests(TestCase):
     def test_have_recent_words(self):
@@ -296,7 +296,7 @@ class LearningPageViewTests(TestCase):
         self.assertContains(response, status_code=200, text='smallpox')
         self.assertContains(response, status_code=200, text='(en-ru)')
 
-    def test_en_ru_card(self):
+    def test_ru_en_card(self):
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',

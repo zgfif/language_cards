@@ -5,3 +5,5 @@ language_cards/__pycache__/
 core/__pycache__/
 core/migrations/__pycache__/__init__.cpython-38.pyc
 core/migrations/__pycache__/
+core/lib/__pycache__/__init__.cpython-310.pyc
+core/lib/__pycache__/word_ids.cpython-310.pyc
