@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
+        {% if learn_ru_word %}
             <a href="/learn_word/en-ru/{{ learn_ru_word }}"><button type="button">start (en-ru)</button></a>
+        {% else %}
+            <h1>You haven't word yet :(</h1>
+        {% endif %}
+        {% if learn_en_word %}
             <a href="/learn_word/ru-en/{{ learn_en_word }}"><button type="button">start (ru-en)</button></a>
-{% endblock content%}
+        {% endif %}
+{% endblock content %}

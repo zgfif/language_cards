@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView
@@ -8,11 +7,19 @@ from django.views.generic.edit import FormView
 
 from core.forms import SignInForm, SignUpForm, AddWordForm
 from core.models import Word
+from core.lib.word_ids import WordIds
 
 
 class IndexView(View):
     def get(self, request):
-        context = {'words': Word.objects.filter(added_by=request.user.id)} if request.user.is_authenticated else {'words': []}
+        context = {'words': []}
+        if request.user.is_authenticated:
+            words = Word.objects.filter(added_by=request.user)
+
+            context['words'] = words
+
+            # update learning ids
+            WordIds(request, words).update()
 
         return render(request=request, template_name='index.html', context=context)
 
@@ -87,42 +94,52 @@ class WordListView(View):
             words = Word.objects.filter(added_by=request.user)
             context = {'words': words}
 
-            ids = list(words.values_list('id', flat=True))
+            WordIds(request, words).update()
 
-            request.session['word_ids'] = ids
             return render(request, template_name='words.html', context=context)
+
         return redirect('/signin')
 
 
 class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            ru_word = Word.objects.filter(added_by=request.user.id).first().id
-            en_word = Word.objects.filter(added_by=request.user.id).first().id
+            words = Word.objects.filter(added_by=request.user.id)
+            ru_word = words.first().id if words else None
+            en_word = words.first().id if words else None
             context = {'learn_ru_word': ru_word, 'learn_en_word': en_word}
-            return render(request, template_name='learning_page.html', context=context)
+            return render(request, template_name='training_.html', context=context)
         return redirect('/signin')
 
 
 class FromEng(View):
-    def get(self, request, id):
-        ids = request.session.get('word_ids')
-        new_index = ids.index(id) + 1 if ids[-1] != id else 0
+    direction = 'ru'
 
+    def get(self, request, id):
         if request.user.is_authenticated:
+            ids = request.session.get('word_ids', [])
+
+            next_id = None
+
+            if ids:
+                new_index = ids.index(id) + 1 if ids[-1] != id else 0
+                next_id = ids[new_index] if new_index else None
+
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'ru'}
+            context = {'word': word, 'word_ids': ids, 'next_id': next_id, 'direction': self.direction}
             return render(request, template_name='training.html', context=context)
         return redirect('/signin')
 
 
-class FromRu(View):
-    def get(self, request, id):
-        ids = request.session.get('word_ids')
-        new_index = ids.index(id) + 1 if ids[-1] != id else 0
+class FromRu(FromEng):
+    direction = 'en'
 
-        if request.user.is_authenticated:
-            word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'eng'}
-            return render(request, template_name='training.html', context=context)
-        return redirect('/signin')
+    # def get(self, request, id):
+    #     if request.user.is_authenticated:
+    #         ids = request.session.get('word_ids', [])
+    #         new_index = ids.index(id) + 1 if ids[-1] != id else 0
+    #
+    #         word = Word.objects.filter(id=id, added_by=request.user.id)[0]
+    #         context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'eng'}
+    #         return render(request, template_name='training.html', context=context)
+    #     return redirect('/signin')
