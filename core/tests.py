@@ -289,12 +289,12 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials['username'], password=credentials['password'])
 
-        self.client.get('/training')
+        self.client.get('/words')
 
         response = self.client.get(f'/learn_word/en-ru/{word.id}', follow=True)
-
         self.assertContains(response, status_code=200, text='smallpox')
         self.assertContains(response, status_code=200, text='(en-ru)')
+        self.assertEqual(response.context.get('next_id'), 1)
 
     def test_ru_en_card(self):
         smallpox = {
@@ -312,7 +312,7 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials['username'], password=credentials['password'])
 
-        self.client.get('/training')
+        self.client.get('/words')
 
         response = self.client.get(f'/learn_word/ru-en/{word.id}', follow=True)
 

@@ -118,12 +118,13 @@ class FromEng(View):
     def get(self, request, id):
         if request.user.is_authenticated:
             ids = request.session.get('word_ids', [])
-
-            next_id = None
-
-            if ids:
+            if ids and len(ids) > 1:
                 new_index = ids.index(id) + 1 if ids[-1] != id else 0
                 next_id = ids[new_index] if new_index else None
+            elif ids:
+                next_id = id
+            else:
+                next_id = None
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
             context = {'word': word, 'word_ids': ids, 'next_id': next_id, 'direction': self.direction}
