@@ -28,7 +28,7 @@
                   <a href="/">Home</a>
                   <a href="/profile">{{ user.username }}</a>|
                   <a href="/words">words</a>
-                  <a href="/signout">Sign out</a>
+                  <a href="/signout"  onclick="return confirm('Are you sure want to sign out?')">Sign out</a>
               </p>
             {% else %}
               <p>

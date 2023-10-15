@@ -318,3 +318,61 @@ class LearningPageViewTests(TestCase):
 
         self.assertContains(response, status_code=200, text='smallpox')
         self.assertContains(response, status_code=200, text='(ru-en)')
+
+    def test_drop_word(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        user = User.objects.create_user(**credentials)
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        word = Word.objects.create(**smallpox, added_by=user)
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+        self.assertEquals(Word.objects.filter(added_by=user).count(), 1)
+
+        self.client.get(f'/words/{word.id}/delete/')
+
+        self.assertEquals(Word.objects.filter(added_by=user).count(), 0)
+
+    def test_drop_unexisting_id_word(self):
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        user = User.objects.create_user(**credentials)
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        self.client.login(username=credentials['username'], password=credentials['password'])
+
+        response = self.client.get('/words/unexisting_id/delete')
+        self.assertEquals(response.status_code, 404)
+
+    def test_trying_to_remove_not_your_word(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        credentials2 = {'username': 'alex', "password": '24safkl', 'email': 'alex@gmail.com'}
+
+        pasha = User.objects.create_user(**credentials1)
+        alex = User.objects.create_user(**credentials2)
+
+        self.assertEquals(User.objects.all().count(), 2)
+
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials2['username'], password=credentials2['password'])
+
+        response = self.client.get(f'/words/{word.id}/delete', follow=True)
+        self.assertContains(response, status_code=200, text='something went wrong')
+        self.assertEquals(Word.objects.all().count(), 1)

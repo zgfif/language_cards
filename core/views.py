@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
@@ -134,12 +135,18 @@ class FromEng(View):
 class FromRu(FromEng):
     direction = 'en'
 
-    # def get(self, request, id):
-    #     if request.user.is_authenticated:
-    #         ids = request.session.get('word_ids', [])
-    #         new_index = ids.index(id) + 1 if ids[-1] != id else 0
-    #
-    #         word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-    #         context = {'word': word, 'word_ids': ids, 'next_id': ids[new_index], 'direction': 'eng'}
-    #         return render(request, template_name='training.html', context=context)
-    #     return redirect('/signin')
+
+class DeleteWordView(View):
+    def get(self, request, id):
+        if request.user.is_authenticated:
+            word = get_object_or_404(Word, id=id)
+            if word and word.added_by == request.user:
+                word.delete()
+                messages.success(request, 'Congratulations! You have successfully deleted word')
+            else:
+                messages.error(request, 'error! something went wrong...')
+
+            return redirect('/words')
+        else:
+            return redirect('/signin')
+
