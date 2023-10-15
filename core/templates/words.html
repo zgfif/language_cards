@@ -18,6 +18,7 @@
                     <td>
                         <audio src="{% say 'en-us'  word.word %}" controls></audio>
                     </td>
+                    <td><a href="/words/{{word.id}}/delete" onclick="return confirm('Are you sure want to delete?')">delete</a></td>
                 </tr>
             {% endfor %}
         </table>
