@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import logout
-from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import TemplateView
@@ -120,11 +119,19 @@ class FromEng(View):
         if request.user.is_authenticated:
             ids = request.session.get('word_ids', [])
 
-            next_id = None
-
             if ids:
-                new_index = ids.index(id) + 1 if ids[-1] != id else 0
-                next_id = ids[new_index] if new_index else None
+                if len(ids) == 1:
+                    next_id = ids[0]
+                else:
+                    current_position = ids.index(id)
+
+                    if current_position == ids[-1]:
+                        next_id = ids[0]
+                    else:
+                        new_index = ids[current_position + 1]
+                        next_id = ids[new_index]
+            else:
+                next_id = None
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
             context = {'word': word, 'word_ids': ids, 'next_id': next_id, 'direction': self.direction}
