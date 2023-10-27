@@ -72,3 +72,15 @@ class AddWordForm(forms.Form):
         else:
             messages.success(request, f'{self.cleaned_data.get("word")} was successfully added to your learn list!')
 
+    def update(self, request, word):
+        try:
+            word.word = request.POST['word']
+            word.sentence = request.POST['sentence']
+            word.translation = request.POST['translation']
+            word.save()
+        except:
+            messages.error(request, 'Something went wrong!')
+        else:
+            messages.success(request, f'{self.cleaned_data.get("word")} was successfully updated!')
+
+

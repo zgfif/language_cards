@@ -376,3 +376,46 @@ class LearningPageViewTests(TestCase):
         response = self.client.get(f'/words/{word.id}/delete', follow=True)
         self.assertContains(response, status_code=200, text='something went wrong')
         self.assertEquals(Word.objects.all().count(), 1)
+
+    def test_show_edit_page(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        pasha = User.objects.create_user(**credentials1)
+
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials1['username'], password=credentials1['password'])
+
+        response = self.client.get(f'/words/{word.id}/edit', follow=True)
+        self.assertContains(response, status_code=200, text='smallpox')
+        self.assertContains(response, status_code=200, text='оспа')
+        self.assertContains(response, 'The children were all vaccinated against smallpox.')
+
+    def test_update_word(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        data_to_update = {'word': 'smallpoxes', 'translation': 'натуральная оспа', 'sentence': 'cool smallpoxes'}
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        pasha = User.objects.create_user(**credentials1)
+
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials1['username'], password=credentials1['password'])
+
+        response = self.client.post(f'/words/{word.id}/edit/', data=data_to_update, follow=True)
+
+        self.assertContains(response, status_code=200, text='натуральная оспа')
+        self.assertContains(response, status_code=200, text=f'{data_to_update["word"]} was successfully updated!')
+        self.assertEqual(Word.objects.last().sentence, 'cool smallpoxes')

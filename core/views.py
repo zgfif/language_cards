@@ -157,3 +157,28 @@ class DeleteWordView(View):
         else:
             return redirect('/signin')
 
+
+class EditWordView(TemplateView):
+    # template_name = 'add_word.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('/signin')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        item = get_object_or_404(Word, id=kwargs['id'])
+
+        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence})}
+
+        return render(request, template_name='add_word.html', context=context)
+
+    def post(self, request, id):
+        item = get_object_or_404(Word, id=id)
+
+        form = AddWordForm(request.POST)
+
+        if form.is_valid():
+            form.update(request, item)
+            return redirect('/words')
+        return self.render_to_response(context={'form': form})
