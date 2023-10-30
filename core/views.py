@@ -119,17 +119,11 @@ class FromEng(View):
         if request.user.is_authenticated:
             ids = request.session.get('word_ids', [])
 
-            if ids:
-                if len(ids) == 1:
-                    next_id = ids[0]
-                else:
-                    current_position = ids.index(id)
-
-                    if current_position == ids[-1]:
-                        next_id = ids[0]
-                    else:
-                        new_index = ids[current_position + 1]
-                        next_id = ids[new_index]
+            if ids and (len(ids) == 1 or ids[-1] == id):
+                next_id = ids[0]
+            elif ids:
+                current_position = ids.index(id)
+                next_id = ids[current_position + 1]
             else:
                 next_id = None
 
