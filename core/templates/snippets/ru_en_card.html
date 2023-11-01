@@ -19,6 +19,8 @@
             {% if word_ids|length > 0 %}
                 <a href="/learn_word/ru-en/{{ next_id }}"><button type="button" id="nextButton">next</button></a>
             {% endif %}
+
+            {% csrf_token %}
             <button type="button" id="checkButton">check</button>
             <div id="wordResult"></div>
         </p>
