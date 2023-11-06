@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -419,3 +420,76 @@ class LearningPageViewTests(TestCase):
         self.assertContains(response, status_code=200, text='натуральная оспа')
         self.assertContains(response, status_code=200, text=f'{data_to_update["word"]} was successfully updated!')
         self.assertEqual(Word.objects.last().sentence, 'cool smallpoxes')
+
+
+    def test_knowing_the_word(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        pasha = User.objects.create_user(**credentials1)
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials1['username'], password=credentials1['password'])
+
+        self.assertEquals(word.en_ru, False)
+
+        self.assertEquals(word.ru_en, False)
+        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
+        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        word = Word.objects.last()
+        self.assertEquals(word.en_ru, True)
+        self.assertEquals(word.ru_en, False)
+
+    def test_unknowing_the_word(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+            'en_ru': True,
+            'ru_en': True,
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        pasha = User.objects.create_user(**credentials1)
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials1['username'], password=credentials1['password'])
+
+        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": False})
+        self.assertEquals(word.en_ru, True)
+        self.assertEquals(word.ru_en, True)
+        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        word = Word.objects.last()
+        self.assertEquals(word.en_ru, False)
+        self.assertEquals(word.ru_en, True)
+
+    def test_change_knowing_the_word_by_another_user(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        credentials2 = {'username': 'dima', "password": '1akklk', 'email': 'dima@gmail.com'}
+        pasha = User.objects.create_user(**credentials1)
+        dima = User.objects.create_user(**credentials2)
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials2['username'], password=credentials1['password'])
+
+        self.assertEquals(word.en_ru, False)
+
+        self.assertEquals(word.ru_en, False)
+        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
+        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        word = Word.objects.last()
+        self.assertEquals(word.en_ru, False)
+        self.assertEquals(word.ru_en, False)
+
+
+

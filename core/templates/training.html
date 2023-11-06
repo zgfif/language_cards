@@ -9,6 +9,9 @@
 {% endblock %}
 
 {% block content %}
+    <span id="direction" data-direction="{{ direction }}" data-id="{{ word.id }}" hidden></span>
+    {% csrf_token %}
+
     {% if direction == 'ru' %}
         <h1>card for word (en-ru)</h1>
         {% include 'snippets/en_ru_card.html' %}
