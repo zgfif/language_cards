@@ -9,12 +9,18 @@
                 <td>eng</td>
                 <td>ru</td>
                 <td>sentence</td>
+                <td>en_ru</td>
+                <td>ru_en</td>
+                <td>known</td>
             </th>
             {% for word in words %}
                 <tr>
                     <td><b>{{ word.word }}</b></td>
                     <td>{{ word.translation }}</td>
                     <td>{{ word.sentence }}</td>
+                    <td>{{ word.en_ru}}</td>
+                    <td>{{ word.ru_en}}</td>
+                    <td>{{ word.is_known }}</td>
                     <td>
                         <audio src="{% say 'en-us'  word.word %}" controls></audio>
                     </td>
