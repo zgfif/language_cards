@@ -1,5 +1,6 @@
  a {
-    color: red
+    color: red;
+    text-decoration: none;
  }
 
  .hiddenDiv {
@@ -9,3 +10,19 @@
  .shownDiv {
     display: block;
  }
+
+ .cardRow {
+    padding-bottom: 25px;
+ }
+
+ .redText {
+    color: red;
+ }
+
+ .greenText {
+    color: green;
+ }
+
+#sentence {
+    font-style: italic;
+}
