@@ -1,28 +1,44 @@
 {% load gTTS %}
 
 <div id="card" class="block">
-    <div id="word">
-            <span>{{ word.translation }}</span>
+    <!--    word in RU-->
+    <div id="word" class="cardRow">
+            <h1><span>{{ word.translation }}</span></h1>
     </div>
-    <div id="translated" class="hiddenDiv">
+
+    <!--    word in EN-->
+    <div id="translated" class="hiddenDiv cardRow">
             <span>{{ word.word }}</span>
     </div>
-    <div id="en_audio" class="hiddenDiv">
+
+    <!--    audio track-->
+    <div id="en_audio" class="hiddenDiv cardRow">
         <audio src="{% say 'en-us'  word.word %}" controls></audio>
     </div>
-        <div id="sentence" class="hiddenDiv">
-            <span>{{ word.sentence }}</span>
-        </div>
-    <div>
-        <input id="guess" name="guess" type="text">
-        <p>
-            {% if word_ids|length > 0 %}
-                <a href="/learn_word/ru-en/{{ next_id }}"><button type="button" id="nextButton">next</button></a>
-            {% endif %}
 
-            {% csrf_token %}
-            <button type="button" id="checkButton">check</button>
-            <div id="wordResult"></div>
-        </p>
+    <!--    sentence example-->
+    <div id="sentence" class="hiddenDiv cardRow">
+        <span>{{ word.sentence }}</span>
     </div>
+
+    <!--    input field-->
+    <div class="cardRow">
+        <input id="guess" name="guess" type="text" class="form-control">
+    </div>
+
+    <!--    buttons block "next" and "check"-->
+    <h1  class="cardRow">
+        <!--        "next" button-->
+        {% if word_ids|length > 0 %}
+            <a href="/learn_word/ru-en/{{ next_id }}">
+                <button type="button" id="nextButton" class="btn btn-light">next</button>
+            </a>
+        {% endif %}
+
+        <!--        "check" button-->
+        {% csrf_token %}
+        <button type="button" id="checkButton"  class="btn btn-primary">check</button>
+    </h1>
+
+    <div id="wordResult" class="redText"></div>
 </div>

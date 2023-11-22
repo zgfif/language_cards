@@ -9,16 +9,19 @@
 {% endblock %}
 
 {% block content %}
-    <span id="direction" data-direction="{{ direction }}" data-id="{{ word.id }}" hidden></span>
-    {% csrf_token %}
+    <div class="container text-center">
+        <span id="direction" data-direction="{{ direction }}" data-id="{{ word.id }}" data-en_word="{{ word.word }}" hidden></span>
 
-    {% if direction == 'ru' %}
-        <h1>card for word (en-ru)</h1>
-        {% include 'snippets/en_ru_card.html' %}
-    {% else %}
-        <h1>card for word (ru-en)</h1>
-        {% include 'snippets/ru_en_card.html' %}
-    {% endif %}
+        {% csrf_token %}
+
+        {% if direction == 'ru' %}
+            <!--      shows en_ru card -->
+            {% include 'snippets/en_ru_card.html' %}
+        {% else %}
+            <!--      shows ru_en card -->
+            {% include 'snippets/ru_en_card.html' %}
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block js %}

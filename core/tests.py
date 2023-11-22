@@ -295,7 +295,6 @@ class LearningPageViewTests(TestCase):
         response = self.client.get(f'/learn_word/en-ru/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
-        self.assertContains(response, status_code=200, text='(en-ru)')
 
     def test_ru_en_card(self):
         smallpox = {
@@ -318,7 +317,6 @@ class LearningPageViewTests(TestCase):
         response = self.client.get(f'/learn_word/ru-en/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
-        self.assertContains(response, status_code=200, text='(ru-en)')
 
     def test_drop_word(self):
         smallpox = {
