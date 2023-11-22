@@ -51,9 +51,9 @@ class SignUpForm(forms.Form):
 
 
 class AddWordForm(forms.Form):
-    word = forms.CharField(label='word')
-    translation = forms.CharField(label='translation')
-    sentence = forms.CharField(label='sentence', required=False)
+    word = forms.CharField(label='word', widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    translation = forms.CharField(label='translation', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    sentence = forms.CharField(label='sentence', required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}))
 
     def clean(self):
         word = self.cleaned_data.get('word')
