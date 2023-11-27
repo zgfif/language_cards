@@ -7,8 +7,15 @@
 {% endblock css %}
 
 
+
 {% block content %}
     <div class="container">
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
         <form method="post"> {% csrf_token %}
                 <div class="col cardRow">
                     {{ form.word.label }}

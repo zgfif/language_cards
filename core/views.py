@@ -82,7 +82,6 @@ class AddWordView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = AddWordForm()
-        # print(context['form'].word)
         return context
 
     def post(self, request):
@@ -90,7 +89,6 @@ class AddWordView(TemplateView):
         if form.is_valid():
             form.save(request)
             return redirect('/')
-
         return self.render_to_response(context={'form': form})
 
 

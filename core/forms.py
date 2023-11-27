@@ -51,14 +51,18 @@ class SignUpForm(forms.Form):
 
 
 class AddWordForm(forms.Form):
-    word = forms.CharField(label='word', widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-    translation = forms.CharField(label='translation', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    sentence = forms.CharField(label='sentence', required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}))
+    word = forms.CharField(label='word',
+                           widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'in english'}))
+
+    translation = forms.CharField(label='translation',
+                                  widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'in russian'}))
+
+    sentence = forms.CharField(label='sentence', required=False,
+                               widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'example of sentence in english'}))
 
     def clean(self):
         word = self.cleaned_data.get('word')
         translation = self.cleaned_data.get('translation')
-
         if not word:
             raise forms.ValidationError('You have not entered any word!')
         if word and not translation:
