@@ -89,7 +89,6 @@ class AddWordView(TemplateView):
         if form.is_valid():
             form.save(request)
             return redirect('/')
-
         return self.render_to_response(context={'form': form})
 
 
