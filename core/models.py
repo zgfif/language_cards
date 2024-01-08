@@ -15,3 +15,17 @@ class Word(models.Model):
 
     def is_known(self):
         return self.ru_en and self.en_ru
+
+
+class MyUser(User):
+    class Meta:
+        proxy = True
+
+    def words(self):
+        return Word.objects.filter(added_by=self.id)
+
+    def known_words(self):
+        return self.words().filter(en_ru=True, ru_en=True)
+
+    def unknown_words(self):
+        return self.words().filter(en_ru=False) | self.words().filter(ru_en=False)

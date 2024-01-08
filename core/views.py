@@ -11,7 +11,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from core.forms import SignInForm, SignUpForm, AddWordForm
-from core.models import Word
+from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
 
 
@@ -67,7 +67,14 @@ class SignOutView(View):
 class AccountView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            return render(request=request, template_name='profile.html')
+            profile = MyUser.objects.get(id=request.user.id)
+
+            context = {'total': profile.words().count(),
+                       'known': profile.known_words().count(),
+                       'unknown': profile.unknown_words().count()
+            }
+
+            return render(request=request, template_name='profile.html', context=context)
         return redirect('/signin')
 
 
