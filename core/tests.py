@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from core.models import Word
+from core.models import Word, MyUser
 
 
 class IndexViewTests(TestCase):
@@ -489,5 +489,78 @@ class LearningPageViewTests(TestCase):
         self.assertEquals(word.en_ru, False)
         self.assertEquals(word.ru_en, False)
 
+    def test_zero_count_of_words(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
+        pasha = User.objects.create_user(**credentials1)
+        pasha = MyUser.objects.get(id=pasha.id)
+        self.assertEquals(pasha.words().count(), 0)
+        self.assertEquals(pasha.known_words().count(), 0)
+        self.assertEquals(pasha.unknown_words().count(), 0)
 
 
+    def test_count_of_words(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        canteen = {
+            'word': 'canteen',
+            'translation': 'столовая',
+            'sentence': 'they had lunch in the staff canteen',
+        }
+
+        factory = {
+            'word': 'factory',
+            'translation': 'фабрика',
+            'sentence': 'he works in a clothing factory',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        pasha = User.objects.create_user(**credentials1)
+        Word.objects.create(**smallpox, added_by=pasha)
+        Word.objects.create(**canteen, added_by=pasha)
+        Word.objects.create(**factory, added_by=pasha)
+
+        pasha = MyUser.objects.get(id=pasha.id)
+        self.assertEquals(pasha.words().count(), 3)
+        self.assertEquals(pasha.known_words().count(), 0)
+        self.assertEquals(pasha.unknown_words().count(), 3)
+
+    def test_count_of_known_words(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        canteen = {
+            'word': 'canteen',
+            'translation': 'столовая',
+            'sentence': 'they had lunch in the staff canteen',
+        }
+
+        factory = {
+            'word': 'factory',
+            'translation': 'фабрика',
+            'sentence': 'he works in a clothing factory',
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        pasha = User.objects.create_user(**credentials1)
+        Word.objects.create(**smallpox, added_by=pasha, ru_en=True)
+        Word.objects.create(**canteen, added_by=pasha, ru_en=True, en_ru=True)
+        Word.objects.create(**factory, added_by=pasha, en_ru=True)
+
+        pasha = MyUser.objects.get(id=pasha.id)
+        self.assertEquals(pasha.words().count(), 3)
+        self.assertEquals(pasha.known_words().count(), 1)
+        self.assertEquals(pasha.unknown_words().count(), 2)

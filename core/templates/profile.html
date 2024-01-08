@@ -1,15 +1,50 @@
 {% extends 'base.html' %}
 
+
+
 {% block title %}
     {{ user }}'s profile
 {% endblock %}
 
+
 <!--total information about user-->
 {% block content %}
+<div class="container">
         <h1>Your profile</h1>
-        <p>username: {{ user }}</p>
-        <p>email: {{ user.email }}</p>
-        <p>registered {{ user.date_joined|date:"Y-m-d" }}</p>
-        <p>count of added words: XXXX</p>
+        <p>username: <b>{{ user }}</b></p>
+        <p>email: <b>{{ user.email }}</b></p>
+        <p>registered: <b>{{ user.date_joined|date:"Y-m-d" }}</b></p>
+        <!-- information about added words-->
+
+
+        <table class="table">
+        <!--            head of table-->
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Count</th>
+            </tr>
+          </thead>
+            <!--            body of table-->
+          <tbody>
+        <!--          total count of added words-->
+            <tr>
+              <td><b>Total</b></td>
+              <td>{{ total }}</td>
+            </tr>
+        <!-- count of known words-->
+            <tr>
+              <td>Known</td>
+              <td>{{ known }}</td>
+            </tr>
+        <!-- count of unknown words-->
+            <tr>
+              <td>Unknown</td>
+              <td>{{ unknown }}</td>
+            </tr>
+          </tbody>
+        </table>
+
         <p><a href="/words">added words</a></p>
+</div>
 {% endblock %}
