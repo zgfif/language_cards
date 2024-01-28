@@ -1,19 +1,24 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
-    {% if words %}
+    <div class="container">
+        {% if words %}
         {% load gTTS %}
-        <table>
-            <th>
-            <td>eng</td>
-                <td>ru</td>
-                <td>sentence</td>
-                <td>en_ru</td>
-                <td>ru_en</td>
-                <td>known</td>
-            </th>
-            {% for word in words %}
+        <br>
+        <!--   table for words     -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col">en-ru</th>
+                    <th scope="col">ru-en</th>
+                    <th scope="col">known</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for word in words %}
                 <tr>
                     <td><b>{{ word.word }}</b></td>
                     <td>{{ word.translation }}</td>
@@ -21,18 +26,21 @@
                     <td>{{ word.en_ru}}</td>
                     <td>{{ word.ru_en}}</td>
                     <td>{{ word.is_known }}</td>
-                    <td>
-                        <audio src="{% say 'en-us'  word.word %}" controls></audio>
-                    </td>
-                    <td><a href="/words/{{word.id}}/delete" onclick="return confirm('Are you sure want to delete?')">delete</a></td>
+                    <td><audio src="{% say 'en-us'  word.word %}" controls ></audio></td>
+                    <td><a href="/words/{{word.id}}/delete" onclick="return confirm('Are you sure want to delete \''{{ word.word }}\''?')">delete</a></td>
                     <td><a href="/words/{{word.id}}/edit">edit</a></td>
                 </tr>
             {% endfor %}
+            </tbody>
         </table>
-        <a href="/learn_word/en-ru/{{ words.first.id }}">train words(eng-ru)</a>
-        <a href="/learn_word/ru-en/{{ words.first.id }}">train words(ru-eng)</a>
+        <br>
+        <!--        buttons to train en-ru and ru_en translation-->
+        <a href="/learn_word/en-ru/{{ words.first.id }}"><button class="btn btn-primary" type="button">train words(eng-ru)</button></a>
+        <a href="/learn_word/ru-en/{{ words.first.id }}"><button class="btn btn-primary" type="button">train words(ru-eng)</button></a>
     {% else %}
         <p>you have not any words yet:)</p>
     {% endif %}
-    <p><a href="/add_word">add</a></p>
+        <!--        button to add word-->
+        <a href="/add_word"><button class="btn btn-primary" type="button">add</button></a>
+    </div>
 {% endblock %}
