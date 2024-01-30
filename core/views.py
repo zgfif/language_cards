@@ -206,3 +206,12 @@ class EditWordView(TemplateView):
             form.update(request, item)
             return redirect('/words')
         return self.render_to_response(context={'form': form})
+
+
+class ResetWordView(View):
+    def get(self, request, id):
+        word = get_object_or_404(Word, id=id)
+        if request.user.is_authenticated and word.added_by == request.user:
+            word.ru_en, word.en_ru = False, False
+            word.save()
+        return redirect('/words')

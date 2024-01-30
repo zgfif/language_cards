@@ -510,12 +510,6 @@ class LearningPageViewTests(TestCase):
         self.assertEquals(word.ru_en, False)
 
     def test_zero_count_of_words(self):
-        smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         pasha = User.objects.create_user(**credentials1)
@@ -584,3 +578,30 @@ class LearningPageViewTests(TestCase):
         self.assertEquals(pasha.words().count(), 3)
         self.assertEquals(pasha.known_words().count(), 1)
         self.assertEquals(pasha.unknown_words().count(), 2)
+
+
+class ResetProgress(TestCase):
+    def test_do_not_rest_progress(self):
+        smallpox = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+            'en_ru': True,
+            'ru_en': True,
+        }
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+
+        pasha = User.objects.create_user(**credentials1)
+
+        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        self.client.login(username=credentials1['username'], password=credentials1['password'])
+
+        self.assertTrue(word.en_ru)
+        self.assertTrue(word.ru_en)
+
+        self.client.get(f'/words/{word.id}/reset/')
+
+        self.assertFalse(word.en_ru)
+        self.assertFalse(word.ru_en)
