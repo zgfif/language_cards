@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -95,7 +96,7 @@ class AddWordView(TemplateView):
         form = AddWordForm(request.POST)
         if form.is_valid():
             form.save(request)
-            return redirect('/')
+            return redirect(reverse('words'))
         return self.render_to_response(context={'form': form})
 
 

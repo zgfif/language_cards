@@ -3,6 +3,7 @@ import json
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.urls import reverse
 
 from core.models import Word, MyUser
 
@@ -195,6 +196,25 @@ class AddWordViewTests(TestCase):
         response = self.client.post('/add_word', word_details)
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
+
+    def test_redirection_after_successful_adding_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        User.objects.create_user(**credentials)
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        path = reverse('words')
+
+        self.assertContains(response, text='successfully added', status_code=200)
+        self.assertEqual(path, response.redirect_chain[-1][0])
+
 
 
 class WordListViewTests(TestCase):
