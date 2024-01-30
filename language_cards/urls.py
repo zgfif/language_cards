@@ -27,7 +27,7 @@ urlpatterns = [
     path('signout', views.SignOutView.as_view()),
     path('profile', views.AccountView.as_view()),
     path('add_word', views.AddWordView.as_view()),
-    path('words', views.WordListView.as_view()),
+    path('words', views.WordListView.as_view(), name='words'),
     # for unauthorized access dynamic translation
     path('gtts/', include('gTTS.urls')),
     # for user authorized dynamic translation
