@@ -37,5 +37,6 @@ urlpatterns = [
     path('learn_word/ru-en/<int:id>/', views.FromRu.as_view()),
     path('words/<int:id>/delete/', views.DeleteWordView.as_view()),
     path('words/<int:id>/edit/', views.EditWordView.as_view()),
+    path('words/<int:id>/reset/', views.ResetWordView.as_view()),
 
 ]
