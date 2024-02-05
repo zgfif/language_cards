@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 
-
-
 {% block title %}
     {{ user }}'s profile
 {% endblock %}
-
 
 <!--total information about user-->
 {% block content %}
@@ -15,8 +12,6 @@
         <p>email: <b>{{ user.email }}</b></p>
         <p>registered: <b>{{ user.date_joined|date:"Y-m-d" }}</b></p>
         <!-- information about added words-->
-
-
         <table class="table">
         <!--            head of table-->
           <thead>
@@ -44,7 +39,6 @@
             </tr>
           </tbody>
         </table>
-
         <p><a href="/words">added words</a></p>
 </div>
 {% endblock %}
