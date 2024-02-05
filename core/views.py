@@ -104,9 +104,13 @@ class WordListView(View):
     def get(self, request):
         if request.user.is_authenticated:
             words = Word.objects.filter(added_by=request.user)
-            context = {'words': words}
 
             WordIds(request, words).update()
+
+            context = {'words': words,
+                       'en_ru_ids': request.session.get('en_ru_ids'),
+                       'ru_en_ids': request.session.get('ru_en_ids'),
+                       }
 
             return render(request, template_name='words.html', context=context)
 
@@ -116,9 +120,12 @@ class WordListView(View):
 class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            words = Word.objects.filter(added_by=request.user.id)
-            ru_word = words.first().id if words else None
-            en_word = words.first().id if words else None
+            unknown_en_ru_words = Word.objects.filter(added_by=request.user.id, en_ru=False)
+            unknown_ru_en_words = Word.objects.filter(added_by=request.user.id, ru_en=False)
+
+            ru_word = unknown_en_ru_words.first().id if unknown_en_ru_words else None
+            en_word = unknown_ru_en_words.first().id if unknown_ru_en_words else None
+
             context = {'learn_ru_word': ru_word, 'learn_en_word': en_word}
             return render(request, template_name='training_.html', context=context)
         return redirect('/signin')
@@ -130,7 +137,10 @@ class FromEng(View):
     def get(self, request, id):
         if request.user.is_authenticated:
             # calculate the next word id for reference
-            ids = request.session.get('word_ids', [])
+            if self.direction == 'ru':
+                ids = request.session.get('en_ru_ids', [])
+            else:
+                ids = request.session.get('ru_en_ids', [])
 
             if ids and (len(ids) == 1 or ids[-1] == id):
                 next_id = ids[0]
@@ -211,6 +221,7 @@ class EditWordView(TemplateView):
 class ResetWordView(View):
     def get(self, request, id):
         word = get_object_or_404(Word, id=id)
+
         if request.user.is_authenticated and word.added_by == request.user:
             word.ru_en, word.en_ru = False, False
             word.save()

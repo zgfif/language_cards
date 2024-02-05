@@ -1,10 +1,12 @@
 import datetime
 import json
 
+from django.contrib import auth
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
+from core.lib.word_ids import WordIds
 from core.models import Word, MyUser
 
 
@@ -598,10 +600,43 @@ class ResetProgress(TestCase):
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        self.assertTrue(word.en_ru)
-        self.assertTrue(word.ru_en)
-
         self.client.get(f'/words/{word.id}/reset/')
 
-        self.assertFalse(word.en_ru)
+        word = Word.objects.get(id=word.id)
         self.assertFalse(word.ru_en)
+        self.assertFalse(word.en_ru)
+
+
+class WordIdsTests(TestCase):
+    def test_retrieving_all_ids(self):
+        words = [
+            {'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        },
+         {
+            'word': 'canteen',
+            'translation': 'столовая',
+            'sentence': 'they had lunch in the staff canteen',
+        },
+         {
+            'word': 'factory',
+            'translation': 'фабрика',
+            'sentence': 'he works in a clothing factory',
+        },]
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+
+        pasha = User.objects.create_user(**credentials1)
+
+        for word in words:
+            Word.objects.create(**word, added_by=pasha)
+
+        self.client.login(**credentials1)
+
+        self.assertEqual(self.client.session.get('word_ids', None), None)
+
+        words_objects = Word.objects.all()
+        self.client.get('/')
+        session_ids = [word.id for word in words_objects]
+        self.assertEqual(len(session_ids), 3)
