@@ -1,19 +1,28 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'core/words.css' %}">
+{% endblock css %}
+
+<title>{% block title %}added words{% endblock %}</title>
+
+
 {% block content %}
     <div class="container">
         {% if words %}
             <br>
             <!--        button to train en-ru translation-->
             {%  if en_ru_ids %}
-                <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}">
+                <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}" class="link_as_button">
                     <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ en_ru_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}
             <!--        button to train ru_en translation-->
             {%  if ru_en_ids %}
-                <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}">
+                <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}"  class="link_as_button">
                     <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ ru_en_ids|length }}</b>
                     </button>
                 </a>

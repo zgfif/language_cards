@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="{% static 'core/training.css' %}">
 {% endblock %}
 
+<!--the title depends on from direction-->
+{% block title %}
+    {% if direction == 'ru' %}en-ru{% else %}ru-en{% endif %} training
+{% endblock title %}
+
+
 {% block content %}
     <div class="container text-center">
         <span id="direction" data-direction="{{ direction }}" data-id="{{ word.id }}" data-en_word="{{ word.word }}" hidden></span>
