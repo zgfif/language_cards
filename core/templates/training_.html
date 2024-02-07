@@ -5,12 +5,24 @@
         <div style="text-align:center">
             <br>
             {% if learn_ru_word %}
-                <a href="/learn_word/en-ru/{{ learn_ru_word }}"><button class="btn btn-primary" type="button">start (en-ru)</button></a>
-            {% else %}
-                <h1>You haven't word yet :(</h1>
+                <a href="/learn_word/en-ru/{{ learn_ru_word }}">
+                    <button class="btn btn-primary" type="button">start (en-ru)</button>
+                </a>
             {% endif %}
+
             {% if learn_en_word %}
-                <a href="/learn_word/ru-en/{{ learn_en_word }}"><button class="btn btn-primary" type="button">start (ru-en)</button></a>
+                <a href="/learn_word/ru-en/{{ learn_en_word }}">
+                    <button class="btn btn-primary" type="button">start (ru-en)</button>
+                </a>
+            {% endif %}
+
+            {% if not learn_ru_word and not learn_en_word %}
+                <h2>Sorry, you have nothing to learn...</h2>
+
+                <p>
+                    To start learning words, please, add new words to your dictionary or reset progress of existing
+                    words in your dictionary.
+                </p>
             {% endif %}
         </div>
     </div>

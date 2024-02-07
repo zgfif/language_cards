@@ -103,7 +103,7 @@ class AddWordView(TemplateView):
 class WordListView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            words = Word.objects.filter(added_by=request.user)
+            words = Word.objects.filter(added_by=request.user).order_by('en_ru', 'ru_en')
 
             WordIds(request, words).update()
 
@@ -120,8 +120,9 @@ class WordListView(View):
 class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
-            unknown_en_ru_words = Word.objects.filter(added_by=request.user.id, en_ru=False)
-            unknown_ru_en_words = Word.objects.filter(added_by=request.user.id, ru_en=False)
+            user_words = Word.objects.filter(added_by=request.user.id)
+            unknown_en_ru_words = user_words.filter(en_ru=False)
+            unknown_ru_en_words = user_words.filter(ru_en=False)
 
             ru_word = unknown_en_ru_words.first().id if unknown_en_ru_words else None
             en_word = unknown_ru_en_words.first().id if unknown_ru_en_words else None
