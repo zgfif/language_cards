@@ -1,0 +1,5 @@
+/* this class is used to remove underscore from links "train words(ru-en)" and "train words(en-ru)" which used as
+   buttons in words.html */
+.link_as_button {
+    text-decoration: none;
+}
