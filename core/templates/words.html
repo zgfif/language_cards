@@ -3,7 +3,27 @@
 {% block content %}
     <div class="container">
         {% if words %}
+            <br>
+            <!--        button to train en-ru translation-->
+            {%  if en_ru_ids %}
+                <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}">
+                    <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ en_ru_ids|length }}</b>
+                    </button>
+                </a>
+            {% endif %}
+            <!--        button to train ru_en translation-->
+            {%  if ru_en_ids %}
+                <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}">
+                    <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ ru_en_ids|length }}</b>
+                    </button>
+                </a>
+            {% endif %}
+
+        <!--        button to add word-->
+        <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
+
         {% load gTTS %}
+
         <br>
 
         <!--   table for words     -->
@@ -20,34 +40,29 @@
             </thead>
             <tbody>
                 {% for word in words %}
-                <tr>
-                    <td><b>{{ word.word }}</b></td>
-                    <td>{{ word.translation }}</td>
-                    <td>{{ word.sentence }}</td>
-                    <td>{{ word.en_ru}}</td>
-                    <td>{{ word.ru_en}}</td>
-                    <td>{{ word.is_known }}</td>
-                    <td><audio src="{% say 'en-us'  word.word %}" controls ></audio></td>
-                    <td><a href="/words/{{word.id}}/delete" onclick="return confirm('Are you sure want to delete \''{{ word.word }}\''?')">delete</a></td>
-                    <td><a href="/words/{{word.id}}/edit">edit</a></td>
-                    <td><a href="/words/{{word.id}}/reset">reset progress</a></td>
-                </tr>
-            {% endfor %}
+                    <tr>
+                        <td><b>{{ word.word }}</b></td>
+                        <td>{{ word.translation }}</td>
+                        <td>{{ word.sentence }}</td>
+                        <td>{{ word.en_ru}}</td>
+                        <td>{{ word.ru_en}}</td>
+                        <td>{{ word.is_known }}</td>
+                        <td><audio src="{% say 'en-us'  word.word %}" controls ></audio></td>
+                        <td><a href="/words/{{word.id}}/delete"
+                               onclick="return confirm('Are you sure want to delete \'{{ word.word }}\'?')">
+                                delete
+                            </a>
+                        </td>
+                        <td><a href="/words/{{word.id}}/edit">edit</a></td>
+                        <td><a href="/words/{{word.id}}/reset">reset progress</a></td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
         <br>
-        <!--        buttons to train en-ru and ru_en translation-->
-        {%  if en_ru_ids %}
-            <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}"><button class="btn btn-primary" type="button">train words(en-ru)</button></a>
-        {% endif %}
-
-        {%  if ru_en_ids %}
-            <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}"><button class="btn btn-primary" type="button">train words(ru-en)</button></a>
-        {% endif %}
     {% else %}
         <p>you have not any words yet:)</p>
     {% endif %}
-        <!--        button to add word-->
-        <a href="/add_word"><button class="btn btn-primary" type="button">add</button></a>
+
     </div>
 {% endblock %}

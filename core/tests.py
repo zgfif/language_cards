@@ -263,6 +263,38 @@ class WordListViewTests(TestCase):
         self.assertContains(response, status_code=200, text='flu')
         self.assertNotContains(response, status_code=200, text='fever')
 
+    def test_order_of_words(self):
+        words = [
+            {'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+             'en_ru': True,
+        },
+         {
+            'word': 'canteen',
+            'translation': 'столовая',
+            'sentence': 'they had lunch in the staff canteen',
+            'ru_en': True,
+        },
+         {
+            'word': 'factory',
+            'translation': 'фабрика',
+            'sentence': 'he works in a clothing factory',
+        },]
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+
+        pasha = User.objects.create_user(**credentials1)
+
+        for word in words:
+            Word.objects.create(**word, added_by=pasha)
+
+        Word.objects.first().is_known()
+        self.client.login(**credentials1)
+
+        response = self.client.get('/words')
+        self.assertEquals(response.context['words'][0].word, 'factory')
+
 
 class LearningPageViewTests(TestCase):
     def test_opening_learning_page_without_authorization(self):
@@ -293,7 +325,7 @@ class LearningPageViewTests(TestCase):
         response = self.client.get('/training')
         self.assertNotContains(response, status_code=200, text='start (en-ru)')
         self.assertNotContains(response, status_code=200, text='start (ru-en)')
-        self.assertContains(response, status_code=200, text="You haven't word yet :(")
+        self.assertContains(response, status_code=200, text="To start learning words")
         self.assertNotContains(response, text='username/password')
 
     def test_en_ru_card(self):
