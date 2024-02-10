@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://languagecards-production.up.railway.app/', '127.0.0.1']
+ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1']
 
 
 # Application definition
