@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -25,7 +24,11 @@ SECRET_KEY = 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# For example, for a site URL at 'web-production-3640.up.railway.app'
+# (replace the string below with your own site URL):
 ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 
 
 # Application definition
@@ -72,7 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'language_cards.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -82,7 +84,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -102,7 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -114,13 +114,11 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 # The absolute path to the directory where collectstatic will collect static files for deployment.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 
 STATIC_URL = 'static/'
 
