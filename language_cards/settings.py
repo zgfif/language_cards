@@ -21,8 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
 
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
@@ -122,6 +121,8 @@ env = os.environ.get('ENV', False)
 
 if env:
     STATIC_ROOT = BASE_DIR / 'staticfiles'
+else:
+    DEBUG = True
 
 STATIC_URL = 'static/'
 
