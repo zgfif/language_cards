@@ -19,14 +19,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
-ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1']
+ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 
@@ -134,11 +134,3 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'core.auth_backends.EmailAuthBackend',
 ]
-
-# https://whitenoise.readthedocs.io/en/stable/django.html#add-compression-and-caching-support
-# STORAGES = {
-#     # ...
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
