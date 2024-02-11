@@ -9,23 +9,26 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+
+# For example, for a site URL at 'web-production-3640.up.railway.app'
+# (replace the string below with your own site URL):
+ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
+
+CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 
 
 # Application definition
@@ -43,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,16 +75,41 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'language_cards.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Update database configuration from $DATABASE_URL environment variable (if defined)
+
+if os.environ.get('ENV', False):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get('PGDATABASE', False),
+            "USER": os.environ.get('PGUSER', False),
+            "PASSWORD": os.environ.get('PGPASSWORD', False),
+            "HOST": os.environ.get('PGHOST', False),
+            "PORT": os.environ.get('PGPORT', False),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
+if os.environ.get('ENV', False):
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=500,
+        conn_health_checks=True,
+    )
+
+
+
+
+
 
 
 # Password validation
@@ -101,7 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -113,9 +141,16 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+# The absolute path to the directory where collectstatic will collect static files for deployment.
+env = os.environ.get('ENV', False)
+
+if env:
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+else:
+    DEBUG = True
 
 STATIC_URL = 'static/'
 
@@ -128,3 +163,5 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'core.auth_backends.EmailAuthBackend',
 ]
+
+
