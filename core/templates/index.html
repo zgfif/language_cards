@@ -4,12 +4,23 @@
     <div class="container">
         <div>
             <br>
-            {% if words %}
-                <p style="text-align:center;"><a class="btn btn-primary" href="/training">train new words</a></p>
+            {% if user.is_authenticated %}
+                <!-- User is signed in -->
+                {% if words %}
+                    {% if en_ru_ids or ru_en_ids %}
+                        <p style="text-align:center;"><a class="btn btn-primary" href="/training">train new words</a></p>
+                    {% else %}
+                        {% include 'snippets/nothing_to_learn.html' %}
+                    {% endif %}
+                {% else %}
+                    <h3 style="text-align:center;">nothing to train</h3>
+                    <p>You haven't added any words. <a href="/add_word">add word</a></p>
+                {% endif %}
             {% else %}
-                <h3 style="text-align:center;">nothing to train</h3>
+                <!-- User is not signed in -->
+                <p>Please, <a href="/signin">sign in</a> to access this page.</p>
             {% endif %}
         </div>
         <br>
     </div>
-{% endblock %}
+{% endblock content %}

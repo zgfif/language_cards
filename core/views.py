@@ -26,7 +26,8 @@ class IndexView(View):
 
             # update learning ids
             WordIds(request, words).update()
-
+            context['en_ru_ids'] = request.session.get('en_ru_ids', [])
+            context['ru_en_ids'] = request.session.get('ru_en_ids', [])
         return render(request=request, template_name='index.html', context=context)
 
 

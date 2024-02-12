@@ -11,10 +11,16 @@ from core.models import Word, MyUser
 
 
 class IndexViewTests(TestCase):
-    def test_have_recent_words(self):
+    def test_has_sign_in_reference(self):
         response = self.client.get('/')
         text = 'Sign in'
         self.assertContains(response, text=text, status_code=200)
+
+    def test_has_add_word_reference(self):
+        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
+        self.client.login(username='pasha', password='1asdfX')
+        response = self.client.get('/')
+        self.assertContains(response, 'add_word')
 
 
 class SignUpViewTests(TestCase):
