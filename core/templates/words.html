@@ -8,10 +8,13 @@
 
 <title>{% block title %}added words{% endblock %}</title>
 
-
 {% block content %}
     <div class="container">
+        <br>
+
         {% if words %}
+            <!--        button to add word-->
+            <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
             <br>
             <!--        button to train en-ru translation-->
             {%  if en_ru_ids %}
@@ -27,14 +30,8 @@
                     </button>
                 </a>
             {% endif %}
-
-        <!--        button to add word-->
-        <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
-
         {% load gTTS %}
-
         <br>
-
         <!--   table for words     -->
         <table class="table">
             <thead>
@@ -70,7 +67,7 @@
         </table>
         <br>
     {% else %}
-        <p>you have not any words yet:)</p>
+        <p>You haven't added any words yet. Please, <a href="/add_word">add word</a> to start your learning.</p>
     {% endif %}
 
     </div>

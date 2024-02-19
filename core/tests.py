@@ -224,7 +224,6 @@ class AddWordViewTests(TestCase):
         self.assertEqual(path, response.redirect_chain[-1][0])
 
 
-
 class WordListViewTests(TestCase):
     def test_access_without_authorization(self):
         response = self.client.get('/words', follow=True)
@@ -235,7 +234,8 @@ class WordListViewTests(TestCase):
         User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
         self.client.login(username='pasha', password='1asdfX')
         response = self.client.get('/words')
-        self.assertContains(response, text='you have not any words yet:)', status_code=200)
+        self.assertContains(response, text='You haven\'t added any words', status_code=200)
+        self.assertContains(response, text='add word')
 
     def test_absense_of_words_related_to_other_user(self):
         user1 = User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
