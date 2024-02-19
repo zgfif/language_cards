@@ -5,3 +5,9 @@
 $("form").submit(function () {
     $("#add_button").attr("disabled", true);
 });
+
+
+$(document).ready(function() {
+    // Set focus to the input field with id "id_word"
+    $("#id_word").focus();
+});
