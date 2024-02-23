@@ -4,11 +4,23 @@
     Sign in
 {% endblock %}
 
-<!--form to signin-->
 {% block content %}
-    <form method="post">{% csrf_token %}
-        {{ form }}
-        <button type="submit">Enter</button>
-    </form>
-{% endblock %}
+    <div class="container">
+        <br>
+        <!--      add errors block -->
+        {% include 'snippets/form_errors_list.html' %}
 
+        <!--form to signin-->
+        <form method="post">{% csrf_token %}
+            <p>
+                {{ form.username.label }}
+                {{ form.username }}
+            </p>
+            <p>
+                {{ form.password.label }}
+                {{ form.password }}
+            </p>
+            <button class="btn btn-primary" type="submit">Sign in</button>
+        </form>
+    </div>
+{% endblock %}

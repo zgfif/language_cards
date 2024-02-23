@@ -6,8 +6,34 @@
 
 <!--form to signup-->
 {% block content %}
-    <form method="post"> {% csrf_token %}
-        <table>{{ form.as_table }}</table>
-        <button type="submit">Sign Up</button>
-    </form>
+    <div class="container">
+        <br>
+        <!--      add errors block -->
+        {% include 'snippets/form_errors_list.html' %}
+
+        <!--     sign up form   -->
+        <form method="post"> {% csrf_token %}
+                <div class="col">
+                    {{ form.username.label }}
+                    {{ form.username }}
+                </div>
+                <br>
+                <div class="col">
+                    {{ form.password.label }}
+                    {{ form.password }}
+                </div>
+                <br>
+                <div class="col">
+                    {{ form.password_confirmation.label }}
+                    {{ form.password_confirmation }}
+                </div>
+                <br>
+                <div class="col">
+                    {{ form.email.label }}
+                    {{ form.email }}
+                </div>
+            <br>
+            <button class="btn btn-primary"  type="submit">Sign up</button>
+        </form>
+    </div>
 {% endblock %}
