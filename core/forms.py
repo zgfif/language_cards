@@ -28,12 +28,19 @@ class SignInForm(forms.Form):
 
 
 class SignUpForm(forms.Form):
-    username = forms.CharField(required=True)
+    username = forms.CharField(required=True,
+                               widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'must be unique'}))
 
-    password = forms.CharField(widget=forms.widgets.PasswordInput(), required=True)
-    password_confirmation = forms.CharField(widget=forms.widgets.PasswordInput(), required=True)
+    password = forms.CharField(required=True,
+                               widget=forms.widgets.PasswordInput(attrs={'class': 'form-control',
+                                                                         'placeholder': 'make up any password'}),)
+    password_confirmation = forms.CharField(required=True,
+                                            widget=forms.widgets.PasswordInput(attrs={'class': 'form-control',
+                                                                                      'placeholder':
+                                                                                          'must the same as password'}))
 
     email = forms.EmailField(required=True,
+                             widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'mail@example.com'}),
                              validators=[validators.EmailValidator(message="Invalid Email")])
 
     def clean(self):
