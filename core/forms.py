@@ -7,8 +7,11 @@ from core.models import Word
 
 
 class SignInForm(forms.Form):
-    username = forms.CharField(label='username/email')
-    password = forms.CharField(widget=forms.widgets.PasswordInput())
+    username = forms.CharField(widget=forms.widgets.TextInput(attrs={'class': 'form-control',
+                                                                     'placeholder': 'email or username'}),
+                               label='username/email')
+    password = forms.CharField(widget=forms.widgets.PasswordInput(attrs={'class': 'form-control',
+                                                                         'placeholder': 'your password'}))
 
     def clean(self):
         user = User.objects.filter(username=self.cleaned_data['username']).first()

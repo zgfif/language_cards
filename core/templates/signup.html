@@ -8,16 +8,8 @@
 {% block content %}
     <div class="container">
         <br>
-        <!--        show form errors as list-->
-        {% if form.errors %}
-            <ul>
-            {% for field, errors in form.errors.items %}
-                {% for error in errors %}
-                    <li>{{ field }}: {{ error }}</li>
-                {% endfor %}
-            {% endfor %}
-            </ul>
-        {% endif %}
+        <!--      add errors block -->
+        {% include 'snippets/form_errors_list.html' %}
 
         <!--     sign up form   -->
         <form method="post"> {% csrf_token %}
