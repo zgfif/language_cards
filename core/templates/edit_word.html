@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="{% static 'core/add_word.css' %}">
 {% endblock css %}
 
-<title>{% block title %}add word{% endblock %}</title>
+<title>{% block title %}edit word{% endblock %}</title>
 
 {% block content %}
     <div class="container">
@@ -33,11 +33,12 @@
                     {{ form.sentence }}
                 </div>
 
-            <button type="submit" class="btn btn-primary" id="update_button">add</button>
+            <button type="submit" class="btn btn-primary" id="update_button">update</button>
         </form>
     </div>
 {% endblock content %}
 
 {% block js %}
     <script src="{% static 'core/add_word.js' %}"></script>
+    <script src="{% static 'core/edit_word.js' %}"></script>
 {% endblock js %}
