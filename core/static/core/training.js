@@ -32,7 +32,7 @@ check_button.addEventListener('click', function () {
 
     let correctness = false
 
-    if (entered_word.value == correct_word) {
+    if (process_text(entered_word.value) == process_text(correct_word)) {
         message = 'It is correct!!!';
 
         show_sentence_example();
@@ -135,4 +135,21 @@ function decorate_sentence(element, word='') {
 function clear_articles(word) {
     reg2 = /^(to\s|a\s|an\s|the\s)/
     return word.replace(reg2, '')
+}
+
+// return any text in lower case
+function make_lower_case(text='') {
+    return text.toLowerCase()
+}
+
+// returns the text where 2 or more spaces in a row are replaced with only 1 space
+function remove_excess_spaces(text='') {
+    reg = /\s{2,}/g;
+    return text.replace(reg, ' ').trim();
+}
+
+// returns text in lower case and without multiple spaces in a row
+function process_text(text='') {
+    const lower_case = make_lower_case(text)
+    return remove_excess_spaces(lower_case)
 }
