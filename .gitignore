@@ -8,3 +8,4 @@ core/migrations/__pycache__/
 core/lib/__pycache__/__init__.cpython-310.pyc
 core/lib/__pycache__/word_ids.cpython-310.pyc
 staticfiles/
+core/lib/__pycache__/gtts_audio.cpython-310.pyc
