@@ -11,3 +11,4 @@ staticfiles/
 core/lib/__pycache__/gtts_audio.cpython-310.pyc
 core/lib/__pycache__/audio.cpython-310.pyc
 credentials.json
+venv/
