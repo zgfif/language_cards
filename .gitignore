@@ -10,3 +10,4 @@ core/lib/__pycache__/word_ids.cpython-310.pyc
 staticfiles/
 core/lib/__pycache__/gtts_audio.cpython-310.pyc
 core/lib/__pycache__/audio.cpython-310.pyc
+credentials.json
