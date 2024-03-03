@@ -30,7 +30,6 @@
                     </button>
                 </a>
             {% endif %}
-        {% load gTTS %}
         <br>
         <!--   table for words     -->
         <table class="table">
@@ -53,7 +52,7 @@
                         <td>{{ word.en_ru}}</td>
                         <td>{{ word.ru_en}}</td>
                         <td>{{ word.is_known }}</td>
-                        <td><audio src="{% say 'en-us'  word.word %}" controls ></audio></td>
+                        <td><audio controls src="media/{{ word.audio_url }}"></audio></td>
                         <td><a href="/words/{{word.id}}/delete"
                                onclick="return confirm('Are you sure want to delete \'{{ word.word }}\'?')">
                                 delete

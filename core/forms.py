@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
 from django.contrib.auth.models import User
 from django.core import validators
+
+from core.lib.generate_audio import GenerateAudio
 from core.models import Word
 
 
@@ -80,7 +82,10 @@ class AddWordForm(forms.Form):
 
     def save(self, request):
         try:
-            Word.objects.create(added_by=request.user, **self.cleaned_data)
+            word = Word.objects.create(added_by=request.user, **self.cleaned_data)
+
+            GenerateAudio().perform(word=word)
+
         except:
             messages.error(request, 'Something went wrong!')
         else:

@@ -22,8 +22,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8')
 
-
-
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
 ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
@@ -34,7 +32,6 @@ CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 # Application definition
 
 INSTALLED_APPS = [
-    'gTTS',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -151,6 +148,8 @@ if env:
     STATIC_ROOT = BASE_DIR / 'staticfiles'
 else:
     DEBUG = True
+    MEDIA_ROOT = BASE_DIR / 'media/'
+    MEDIA_URL = 'media/'
 
 STATIC_URL = 'static/'
 
