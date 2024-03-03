@@ -1,13 +1,16 @@
 import datetime
 import json
+import os
 
+from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
 from django.urls import reverse
 
+from core.lib.remove_file import RemoveFile
 from core.lib.word_ids import WordIds
-from core.models import Word, MyUser
+from core.models import Word, MyUser, GttsAudio
 
 
 class IndexViewTests(TestCase):
@@ -132,6 +135,13 @@ class AccountViewTests(TestCase):
 
 
 class AddWordViewTests(TestCase):
+    # this function removes all unnecessary gTTS files which are saved in the media/ directory during tests
+    def tearDown(self):
+        files_to_remove = GttsAudio.objects.all().values_list('audio_name', flat=True)
+        for filename in files_to_remove:
+            if filename:
+                RemoveFile(filename).perform()
+
     def test_access_to_form_for_not_authorized_user(self):
         response = self.client.get('/add_word', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
