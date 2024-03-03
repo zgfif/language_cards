@@ -13,3 +13,4 @@ core/lib/__pycache__/audio.cpython-310.pyc
 credentials.json
 venv/
 core/lib/__pycache__/generate_audio.cpython-310.pyc
+media/
