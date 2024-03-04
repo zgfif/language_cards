@@ -164,3 +164,25 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
+# settings to store media files in GCS
+from google.oauth2 import service_account
+
+# if it is True then all media files will be stored in GSC, in other case - locally on /media
+SAVE_MEDIA_ON_GSC = True
+
+if SAVE_MEDIA_ON_GSC:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+       str(BASE_DIR / 'credentials.json')
+    )
+
+    GS_BUCKET_NAME = 'upload_photos_bucket'
+
+    STORAGES = {
+       "default": {
+           "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+           "OPTIONS": {},
+       },
+       "staticfiles": {
+           "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+       },
+    }

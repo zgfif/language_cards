@@ -26,7 +26,7 @@ class Word(models.Model):
         return self.ru_en and self.en_ru
 
     @property
-    def audio_url(self):
+    def audio_name(self):
         audios = GttsAudio.objects.filter(word=self)
         if audios:
             return audios.last().audio_name

@@ -11,7 +11,8 @@
 
     <!--    audio track-->
     <div id="en_audio" class="hiddenDiv cardRow">
-        <audio controls src="/media/{{ word.audio_url }}"></audio>
+        {% load full_audio_path_tag %}
+        <audio controls src="{% full_path word %}"></audio>
     </div>
 
     <!--    sentence example-->
