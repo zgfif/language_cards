@@ -175,6 +175,7 @@ SAVE_MEDIA_ON_GSC = True
 if SAVE_MEDIA_ON_GSC and os.environ.get('ENV', False):
     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
         info={
+            "private_key": os.environ.get('private_key', False),
             "client_email": os.environ.get('client_email', False),
             "token_uri": os.environ.get('token_uri', False),
             "project_id": os.environ.get('project_id', False),
