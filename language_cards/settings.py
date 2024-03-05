@@ -174,11 +174,11 @@ SAVE_MEDIA_ON_GSC = True
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
         info={
-            "private_key": os.environ.get("private_key", None),
             "client_email": os.environ.get("client_email", False),
-            "token_uri": os.environ.get("token_uri", False),
+            "token_uri": os.environ.get("token_uri", None),
             "project_id": os.environ.get("project_id", False),
             "universe_domain": os.environ.get("universe_domain", False),
+            "private_key": os.environ.get("private_key", False),
         }
     )
 GS_BUCKET_NAME = 'upload_photos_bucket'
