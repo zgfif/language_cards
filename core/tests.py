@@ -9,6 +9,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 
 from core.lib.remove_file import RemoveFile
+from core.lib.remove_from_gcs import RemoveFromGcs
 from core.lib.word_ids import WordIds
 from core.models import Word, MyUser, GttsAudio
 
@@ -141,6 +142,7 @@ class AddWordViewTests(TestCase):
         for filename in files_to_remove:
             if filename:
                 RemoveFile(filename).perform()
+                RemoveFromGcs().perform(filename)
 
     def test_access_to_form_for_not_authorized_user(self):
         response = self.client.get('/add_word', follow=True)

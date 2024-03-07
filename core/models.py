@@ -9,6 +9,7 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
 from core.lib.remove_file import RemoveFile
+from core.lib.remove_from_gcs import RemoveFromGcs
 
 
 class Word(models.Model):
@@ -58,5 +59,8 @@ class GttsAudio(models.Model):
 
 @receiver(post_delete, sender=GttsAudio)
 def signal_remove_audio_file(sender, instance, using, **kwargs):
+    # remove local file saved in MEDIA_ROOT directory
     RemoveFile(instance.audio_name).perform()
+    # remove audio file if it was saved in Google Cloud Storage
+    RemoveFromGcs().perform(instance.audio_name)
 
