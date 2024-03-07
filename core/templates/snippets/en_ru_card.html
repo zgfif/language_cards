@@ -7,7 +7,7 @@
     </div>
     <div  class="cardRow">
         {% load full_audio_path_tag %}
-        <audio controls src="{% full_path word %}"></audio>
+        <audio id="enAudio" controls src="{% full_path word %}"></audio>
     </div>
         <div id="sentence" class="hiddenDiv cardRow">
             <span>{{ word.sentence }}</span>
