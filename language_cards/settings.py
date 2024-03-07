@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from google.oauth2 import service_account  # module to work with GCS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,19 +23,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpceg^9i&k)uf)oz7iq4c6&oylaj9j)8')
 
-
-
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
 ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 
+# if it is True then all media files will be stored in GSC, in other case - locally on /media
+SAVE_MEDIA_ON_GSC = True
+
+# add this environment variable on server during production deployment, it can has any value, for example:
+# usual ENV = 'PRODUCTION', EXCEPT False!!!
+PRODUCTION_MODE = os.environ.get('ENV', False)
 
 # Application definition
-
 INSTALLED_APPS = [
-    'gTTS',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -80,7 +83,7 @@ WSGI_APPLICATION = 'language_cards.wsgi.application'
 
 # Update database configuration from $DATABASE_URL environment variable (if defined)
 
-if os.environ.get('ENV', False):
+if PRODUCTION_MODE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -100,16 +103,12 @@ else:
     }
 
 
-if os.environ.get('ENV', False):
+# this setting is used to work with database in production
+if PRODUCTION_MODE:
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=500,
         conn_health_checks=True,
     )
-
-
-
-
-
 
 
 # Password validation
@@ -145,12 +144,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 # The absolute path to the directory where collectstatic will collect static files for deployment.
-env = os.environ.get('ENV', False)
 
-if env:
+if PRODUCTION_MODE:
     STATIC_ROOT = BASE_DIR / 'staticfiles'
 else:
     DEBUG = True
+    MEDIA_ROOT = BASE_DIR / 'media/'
+    MEDIA_URL = 'media/'
 
 STATIC_URL = 'static/'
 
@@ -164,4 +164,33 @@ AUTHENTICATION_BACKENDS = [
     'core.auth_backends.EmailAuthBackend',
 ]
 
+# load gsc settings using env variables if we are deploying it on railway server
+if SAVE_MEDIA_ON_GSC and PRODUCTION_MODE:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
+        info={
+            "private_key": os.environ.get('"private_key"', False),
+            "client_email": os.environ.get('"client_email"', False),
+            "token_uri": os.environ.get('"token_uri"', False),
+            "project_id": os.environ.get('"project_id"', False),
+            "universe_domain": os.environ.get('"universe_domain"', False),
+        }
+    )
+# load GSC settings using credentials.json if we are deploying it locally, credentials.json must be excluded from
+# commits
+elif SAVE_MEDIA_ON_GSC:
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        str(BASE_DIR / 'credentials.json')
+    )
 
+# name of your Google cloud storage
+GS_BUCKET_NAME = 'upload_photos_bucket'
+
+STORAGES = {
+   "default": {
+       "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+       "OPTIONS": {},
+   },
+   "staticfiles": {
+       "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+   },
+}

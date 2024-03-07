@@ -9,7 +9,6 @@ const sentence_element = document.querySelector('#sentence span');
 const next_button = document.querySelector('#nextButton');
 
 
-
 // if the sentence has learning word inside it, make it bold
 decorate_sentence(sentence_element, en_word);
 

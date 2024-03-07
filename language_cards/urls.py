@@ -14,9 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
+from django.conf import settings
 from core import views
 
 urlpatterns = [
@@ -28,10 +29,6 @@ urlpatterns = [
     path('profile', views.AccountView.as_view()),
     path('add_word', views.AddWordView.as_view()),
     path('words', views.WordListView.as_view(), name='words'),
-    # for unauthorized access dynamic translation
-    path('gtts/', include('gTTS.urls')),
-    # for user authorized dynamic translation
-    path('gtts_auth/', include('gTTS.urls_auth')),
     path('training', views.LearningPageView.as_view()),
     path('learn_word/en-ru/<int:id>/', views.FromEng.as_view()),
     path('learn_word/ru-en/<int:id>/', views.FromRu.as_view()),
@@ -40,3 +37,5 @@ urlpatterns = [
     path('words/<int:id>/reset/', views.ResetWordView.as_view()),
 
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

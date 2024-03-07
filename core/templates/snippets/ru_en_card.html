@@ -1,5 +1,3 @@
-{% load gTTS %}
-
 <div id="card" class="block">
     <!--    word in RU-->
     <div id="word" class="cardRow">
@@ -13,7 +11,8 @@
 
     <!--    audio track-->
     <div id="en_audio" class="hiddenDiv cardRow">
-        <audio src="{% say 'en-us'  word.word %}" controls></audio>
+        {% load full_audio_path_tag %}
+        <audio controls src="{% full_path word %}"></audio>
     </div>
 
     <!--    sentence example-->
