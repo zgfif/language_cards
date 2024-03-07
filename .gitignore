@@ -16,3 +16,5 @@ core/lib/__pycache__/generate_audio.cpython-310.pyc
 media/core/lib/__pycache__/remove_file.cpython-310.pyc
 core/lib/__pycache__/remove_file.cpython-310.pyc
 core/lib/__pycache__/audio_file_path.cpython-310.pyc
+core/lib/__pycache__/remove_from_gcs.cpython-310.pyc
+core/templatetags/__pycache__/
