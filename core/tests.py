@@ -171,7 +171,7 @@ class AddWordViewTests(TestCase):
 
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
-        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
+        self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_translation(self):
@@ -200,7 +200,7 @@ class AddWordViewTests(TestCase):
 
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
-        self.assertEquals(Word.objects.filter(word=word_details['word']).count(), 1)
+        self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_word(self):
@@ -311,7 +311,7 @@ class WordListViewTests(TestCase):
         self.client.login(**credentials1)
 
         response = self.client.get('/words')
-        self.assertEquals(response.context['words'][0].word, 'factory')
+        self.assertEqual(response.context['words'][0].word, 'factory')
 
 
 class LearningPageViewTests(TestCase):
@@ -405,11 +405,11 @@ class LearningPageViewTests(TestCase):
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         self.client.login(username=credentials['username'], password=credentials['password'])
-        self.assertEquals(Word.objects.filter(added_by=user).count(), 1)
+        self.assertEqual(Word.objects.filter(added_by=user).count(), 1)
 
         self.client.get(f'/words/{word.id}/delete/')
 
-        self.assertEquals(Word.objects.filter(added_by=user).count(), 0)
+        self.assertEqual(Word.objects.filter(added_by=user).count(), 0)
 
     def test_drop_unexisting_id_word(self):
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
@@ -423,7 +423,7 @@ class LearningPageViewTests(TestCase):
         self.client.login(username=credentials['username'], password=credentials['password'])
 
         response = self.client.get('/words/unexisting_id/delete')
-        self.assertEquals(response.status_code, 404)
+        self.assertEqual(response.status_code, 404)
 
     def test_trying_to_remove_not_your_word(self):
         smallpox = {
@@ -438,7 +438,7 @@ class LearningPageViewTests(TestCase):
         pasha = User.objects.create_user(**credentials1)
         alex = User.objects.create_user(**credentials2)
 
-        self.assertEquals(User.objects.all().count(), 2)
+        self.assertEqual(User.objects.all().count(), 2)
 
         word = Word.objects.create(**smallpox, added_by=pasha)
 
@@ -446,7 +446,7 @@ class LearningPageViewTests(TestCase):
 
         response = self.client.get(f'/words/{word.id}/delete', follow=True)
         self.assertContains(response, status_code=200, text='something went wrong')
-        self.assertEquals(Word.objects.all().count(), 1)
+        self.assertEqual(Word.objects.all().count(), 1)
 
     def test_show_edit_page(self):
         smallpox = {
@@ -505,14 +505,14 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        self.assertEquals(word.en_ru, False)
+        self.assertEqual(word.en_ru, False)
 
-        self.assertEquals(word.ru_en, False)
+        self.assertEqual(word.ru_en, False)
         json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
         self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEquals(word.en_ru, True)
-        self.assertEquals(word.ru_en, False)
+        self.assertEqual(word.en_ru, True)
+        self.assertEqual(word.ru_en, False)
 
     def test_unknowing_the_word(self):
         smallpox = {
@@ -530,12 +530,12 @@ class LearningPageViewTests(TestCase):
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
         json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": False})
-        self.assertEquals(word.en_ru, True)
-        self.assertEquals(word.ru_en, True)
+        self.assertEqual(word.en_ru, True)
+        self.assertEqual(word.ru_en, True)
         self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEquals(word.en_ru, False)
-        self.assertEquals(word.ru_en, True)
+        self.assertEqual(word.en_ru, False)
+        self.assertEqual(word.ru_en, True)
 
     def test_change_knowing_the_word_by_another_user(self):
         smallpox = {
@@ -552,23 +552,23 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials2['username'], password=credentials1['password'])
 
-        self.assertEquals(word.en_ru, False)
+        self.assertEqual(word.en_ru, False)
 
-        self.assertEquals(word.ru_en, False)
+        self.assertEqual(word.ru_en, False)
         json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
         self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEquals(word.en_ru, False)
-        self.assertEquals(word.ru_en, False)
+        self.assertEqual(word.en_ru, False)
+        self.assertEqual(word.ru_en, False)
 
     def test_zero_count_of_words(self):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         pasha = User.objects.create_user(**credentials1)
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEquals(pasha.words().count(), 0)
-        self.assertEquals(pasha.known_words().count(), 0)
-        self.assertEquals(pasha.unknown_words().count(), 0)
+        self.assertEqual(pasha.words().count(), 0)
+        self.assertEqual(pasha.known_words().count(), 0)
+        self.assertEqual(pasha.unknown_words().count(), 0)
 
 
     def test_count_of_words(self):
@@ -597,9 +597,9 @@ class LearningPageViewTests(TestCase):
         Word.objects.create(**factory, added_by=pasha)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEquals(pasha.words().count(), 3)
-        self.assertEquals(pasha.known_words().count(), 0)
-        self.assertEquals(pasha.unknown_words().count(), 3)
+        self.assertEqual(pasha.words().count(), 3)
+        self.assertEqual(pasha.known_words().count(), 0)
+        self.assertEqual(pasha.unknown_words().count(), 3)
 
     def test_count_of_known_words(self):
         smallpox = {
@@ -627,9 +627,9 @@ class LearningPageViewTests(TestCase):
         Word.objects.create(**factory, added_by=pasha, en_ru=True)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEquals(pasha.words().count(), 3)
-        self.assertEquals(pasha.known_words().count(), 1)
-        self.assertEquals(pasha.unknown_words().count(), 2)
+        self.assertEqual(pasha.words().count(), 3)
+        self.assertEqual(pasha.known_words().count(), 1)
+        self.assertEqual(pasha.unknown_words().count(), 2)
 
 
 class ResetProgress(TestCase):
