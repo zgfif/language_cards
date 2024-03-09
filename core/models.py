@@ -59,8 +59,9 @@ class GttsAudio(models.Model):
 
 @receiver(post_delete, sender=GttsAudio)
 def signal_remove_audio_file(sender, instance, using, **kwargs):
+    pass
     # remove local file saved in MEDIA_ROOT directory
-    RemoveFile(instance.audio_name).perform()
+    # RemoveFile(instance.audio_name).perform()
     # remove audio file if it was saved in Google Cloud Storage
     # RemoveFromGcs().perform(instance.audio_name)
 
