@@ -17,8 +17,8 @@ class RemoveFromGcs:
     # for testing, I used "my_files/fe880aea-479c-4f36-b8a9-808fe4337188.mp3" format
     # where my_files is the directory which contains .mp3 file in the bucket
     def perform(self, blob_name=''):
-        if blob_name and isinstance(blob_name, str):
-            blob = self.bucket.blob(blob_name)
+        if blob_name:
+            blob = self.bucket.blob(str(blob_name))
             try:
                 blob.delete()
             except NotFound as e:
