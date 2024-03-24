@@ -14,8 +14,8 @@ class GenerateAudio:
             self.word = word
             if isinstance(word.word, str) and len(word.word) > 0:
                 self.text = word.word
-            else:
-                self.text = None
+        else:
+            raise AttributeError('argument must be instance of Word')
 
     def perform(self):
         if self.text:
@@ -32,6 +32,8 @@ class GenerateAudio:
 
                 # save generated audio to media
                 self.save_audio(audio_content)
+        else:
+            return None
 
     def save_audio(self, audio_content=None):
         if audio_content:

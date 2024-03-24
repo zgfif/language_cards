@@ -26,3 +26,4 @@ core/lib/__pycache__/generate_audio.cpython-312.pyc
 core/lib/__pycache__/remove_file.cpython-312.pyc
 core/lib/__pycache__/word_ids.cpython-312.pyc
 core/lib/__pycache__/remove_from_gcs.cpython-312.pyc
+core/lib/__pycache__/translate_text.cpython-310.pyc
