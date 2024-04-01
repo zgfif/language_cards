@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from core.forms import SignInForm, SignUpForm, AddWordForm
+from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
 
@@ -226,3 +227,13 @@ class ResetWordView(View):
             word.ru_en, word.en_ru = False, False
             word.save()
         return redirect('/words')
+
+
+class TranslateWord(View):
+    def post(self, request):
+        try:
+            body = json.loads(request.body)
+            translation = TranslateText('en', 'ru').perform(body.get('text', ''))
+        except json.JSONDecodeError:
+            return JsonResponse(data={'error': 'JsonError'})
+        return JsonResponse(data={'translation': translation})

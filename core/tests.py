@@ -1,17 +1,14 @@
 import datetime
 import json
-import os
 
-from django.conf import settings
-from django.contrib import auth
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
 
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
-from core.lib.word_ids import WordIds
 from core.models import Word, MyUser, GttsAudio
+from core.lib.translate_text import TranslateText
 
 
 class IndexViewTests(TestCase):
@@ -690,3 +687,64 @@ class WordIdsTests(TestCase):
         self.client.get('/')
         session_ids = [word.id for word in words_objects]
         self.assertEqual(len(session_ids), 3)
+
+
+class TranslateTextTests(TestCase):
+    def test_when_no_text(self):
+        text, source_lang, target_lang = '', 'ru', 'en'
+        tt = TranslateText(source_lang, target_lang)
+
+        result = tt.perform(text)
+        self.assertEqual(result, None)
+
+    def test_when_incorrect_source_lang(self):
+        text, source_lang, target_lang = 'cat', 'xxx', 'ru'
+        tt = TranslateText(source_lang, target_lang)
+
+        with self.assertRaises(ValueError) as context:
+            tt.perform(text)
+        self.assertEqual((str(context.exception)), 'invalid source language')
+
+    def test_when_incorrect_target_lang(self):
+        text, source_lang, target_lang = 'кошка', 'ru', 'xxx'
+        tt = TranslateText(source_lang, target_lang)
+
+        with self.assertRaises(ValueError) as context:
+            tt.perform(text)
+        self.assertEqual((str(context.exception)), 'invalid destination language')
+
+    def test_when_incorrect_source_and_target_lang(self):
+        text, source_lang, target_lang = 'кошка', 'yyy', 'xxx'
+        tt = TranslateText(source_lang, target_lang)
+
+        with self.assertRaises(ValueError) as context:
+            tt.perform(text)
+        self.assertEqual((str(context.exception)), 'invalid source language')
+
+    def test_when_no_text_and_incorrect_lang_codes_(self):
+        text, source_lang, target_lang = '', 'yyy', 'xxx'
+        tt = TranslateText(source_lang, target_lang)
+
+        result = tt.perform(text)
+        self.assertEqual(result, None)
+
+    def test_ru_en_direction(self):
+        text, source_lang, target_lang = 'pen', 'en', 'ru'
+        tt = TranslateText(source_lang, target_lang)
+
+        result = tt.perform(text)
+        self.assertEqual(result, 'ручка')
+
+    def test_en_ru_direction(self):
+        text, source_lang, target_lang = 'карандаш', 'ru', 'en'
+        tt = TranslateText(source_lang, target_lang)
+
+        result = tt.perform(text)
+        self.assertEqual(result, 'pencil')
+
+    def test_when_invalid_direction(self):
+        text, source_lang, target_lang = 'карандаш', 'en', 'ru'
+        tt = TranslateText(source_lang, target_lang)
+
+        result = tt.perform(text)
+        self.assertNotEqual(result, 'pencil')
