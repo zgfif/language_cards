@@ -1,17 +1,15 @@
 import json
-
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from core.forms import SignInForm, SignUpForm, AddWordForm
+from core.lib.next_list_item import NextListItem
 from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
@@ -19,11 +17,12 @@ from core.lib.word_ids import WordIds
 
 class IndexView(View):
     def get(self, request):
-        context = {'words': []}
+        context = {}
+
         if request.user.is_authenticated:
             words = Word.objects.filter(added_by=request.user)
 
-            context['words'] = words
+            context['has_words'] = True if words else False
 
             # update learning ids
             WordIds(request, words).update()
@@ -137,24 +136,18 @@ class LearningPageView(View):
 class FromEng(View):
     direction = 'ru'
 
+    def ids(self):
+        return self.request.session.get('en_ru_ids', [])
+
     def get(self, request, id):
         if request.user.is_authenticated:
             # calculate the next word id for reference
-            if self.direction == 'ru':
-                ids = request.session.get('en_ru_ids', [])
-            else:
-                ids = request.session.get('ru_en_ids', [])
+            ids = self.ids()
 
-            if ids and (len(ids) == 1 or ids[-1] == id):
-                next_id = ids[0]
-            elif ids:
-                current_position = ids.index(id)
-                next_id = ids[current_position + 1]
-            else:
-                next_id = None
+            next_id = NextListItem(ids, id).calculate()
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'word_ids': ids, 'next_id': next_id, 'direction': self.direction}
+            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.direction}
             return render(request, template_name='training.html', context=context)
         return redirect('/signin')
 
@@ -178,6 +171,9 @@ class FromEng(View):
 
 class FromRu(FromEng):
     direction = 'en'
+
+    def ids(self):
+        return self.request.session.get('ru_en_ids', [])
 
 
 class DeleteWordView(View):
