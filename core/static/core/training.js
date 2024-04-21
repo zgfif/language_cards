@@ -41,8 +41,9 @@ check_button.addEventListener('click', function () {
 
     let correctness = false
 
+    //    clause is the entered word is CORRECT
     if (process_text(entered_word.value) == process_text(correct_word)) {
-        message = 'It is correct!!!';
+        message = 'It is correct!';
 
         show_sentence_example();
 
@@ -50,8 +51,8 @@ check_button.addEventListener('click', function () {
 
         show_audio();
 
-        // if the entered word is correct focus on the "next" button
-        next_button.focus();
+        //  if we have "next" button focus on the "next" button, else - focus on "finish" button
+        if (next_button) { next_button.focus(); } else { finish_button.focus(); }
     }
 
     // update knowledge about this word
