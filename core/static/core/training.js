@@ -4,9 +4,10 @@ const check_button = document.querySelector('#checkButton');
 const direction = document.querySelector('#direction').dataset.direction;
 const en_word = document.querySelector('#direction').dataset.en_word;
 const id = document.querySelector('#direction').dataset.id;
-const csrf_token = document.querySelector('input[name="csrfmiddlewaretoken"]').getAttribute('value')
+const csrf_token = document.querySelector('input[name="csrfmiddlewaretoken"]').getAttribute('value');
 const sentence_element = document.querySelector('#sentence span');
 const next_button = document.querySelector('#nextButton');
+const finish_button = document.querySelector('#finishButton');
 
 
 // if the sentence has learning word inside it, make it bold
@@ -22,6 +23,15 @@ entered_word.addEventListener('keypress', function(event) {
         check_button.click();
     }
 });
+
+// the page has the "finish" after clicking on it opens "confirm"
+if (finish_button) {
+    finish_button.addEventListener('click', function() {
+     confirm("Congratulations! You've finished the test");
+});
+} else {
+    console.log('no finish button');
+}
 
 
 
@@ -152,3 +162,4 @@ function process_text(text='') {
     const lower_case = make_lower_case(text)
     return remove_excess_spaces(lower_case)
 }
+

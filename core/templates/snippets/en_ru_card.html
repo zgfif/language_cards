@@ -1,28 +1,36 @@
 <div id="card" class="block">
     <div id="word" class="cardRow">
-            <h1><span>{{ word.word }}</span></h1>
+        <h1><span>{{ word.word }}</span></h1>
     </div>
+
     <div id="translated" class="hiddenDiv cardRow">
-            <span>{{ word.translation }}</span>
+        <span>{{ word.translation }}</span>
     </div>
+
     <div  class="cardRow">
         {% load full_audio_path_tag %}
         <audio id="enAudio" controls src="{% full_path word %}"></audio>
     </div>
-        <div id="sentence" class="hiddenDiv cardRow">
-            <span>{{ word.sentence }}</span>
-        </div>
+
+    <div id="sentence" class="hiddenDiv cardRow">
+        <span>{{ word.sentence }}</span>
+    </div>
+
     <div class="cardRow">
         <input id="guess" name="guess" type="text"  class="form-control">
     </div>
 
     <div class="cardRow">
-        {% if word_ids|length > 0 %}
-                <a href="/learn_word/en-ru/{{ next_id }}">
-                    <button type="button" id="nextButton" class="btn btn-light">next</button>
-                </a>
+        {% if ids|length > 0 and next_id %}
+            <!--next button -->
+            <a href="/learn_word/en-ru/{{ next_id }}">
+                <button type="button" id="nextButton" class="btn btn-light">next</button>
+            </a>
         {% endif %}
+        <!-- finish button -->
+        {% include 'snippets/finish_button.html' %}
 
+        <!--check button        -->
         <button type="button" id="checkButton"  class="btn btn-primary">check</button>
     </div>
 

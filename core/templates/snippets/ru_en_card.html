@@ -28,7 +28,7 @@
     <!--    buttons block "next" and "check"-->
     <h1  class="cardRow">
         <!--        "next" button-->
-        {% if word_ids|length > 0 %}
+        {% if ids|length > 0 and next_id %}
             <a href="/learn_word/ru-en/{{ next_id }}">
                 <button type="button" id="nextButton" class="btn btn-light">next</button>
             </a>
@@ -37,6 +37,8 @@
         <!--        "check" button-->
         {% csrf_token %}
         <button type="button" id="checkButton"  class="btn btn-primary">check</button>
+         <!-- finish button -->
+        {% include 'snippets/finish_button.html' %}
     </h1>
 
     <div id="wordResult" class="redText"></div>

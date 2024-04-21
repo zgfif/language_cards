@@ -9,7 +9,7 @@ from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
 from core.models import Word, MyUser, GttsAudio
 from core.lib.translate_text import TranslateText
-
+from core.lib.next_list_item import NextListItem
 
 class IndexViewTests(TestCase):
     def test_has_sign_in_reference(self):
@@ -748,3 +748,45 @@ class TranslateTextTests(TestCase):
 
         result = tt.perform(text)
         self.assertNotEqual(result, 'pencil')
+
+
+class NextListItemTests(TestCase):
+    def test_when_empty_list(self):
+        lst = []
+        current_item = 11
+
+        nli = NextListItem(lst, current_item)
+        result = nli.calculate()
+        self.assertEqual(result, None)
+
+    def test_when_incorrect_current_item(self):
+        lst = [10, 20, 30, 40, 50]
+        item = 11
+
+        nli = NextListItem(lst, item)
+        result = nli.calculate()
+        self.assertEqual(result, None)
+
+    def test_when_current_item_is_last(self):
+        lst = [10, 20, 30, 40, 50]
+        current_item = 50
+
+        nli = NextListItem(lst, current_item)
+        result = nli.calculate()
+        self.assertEqual(result, None)
+
+    def test_when_current_item_is_first(self):
+        lst = [10, 20, 30, 40, 50]
+        current_item = 10
+
+        nli = NextListItem(lst, current_item)
+        result = nli.calculate()
+        self.assertEqual(result, 20)
+
+    def test_when_current_item_is_the_only_one(self):
+        lst = [10,]
+        current_item = 10
+
+        nli = NextListItem(lst, current_item)
+        result = nli.calculate()
+        self.assertEqual(result, None)
