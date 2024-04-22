@@ -51,9 +51,26 @@
                         <td><b>{{ word.word }}</b></td>
                         <td>{{ word.translation }}</td>
                         <td>{{ word.sentence }}</td>
-                        <td>{{ word.en_ru}}</td>
-                        <td>{{ word.ru_en}}</td>
-                        <td>{{ word.is_known }}</td>
+<!--                        knows en-ru translation -->
+                        <td>{% if word.en_ru %}
+                                <img src="{% static 'core/images/yes.svg' %}" style="height:20px" alt="yes">
+                            {% else %}
+                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
+                            {% endif %}
+                        </td>
+                        <!--                        knows ru-en translation -->
+                        <td>{% if word.ru_en %}
+                                <img src="{% static 'core/images/yes.svg' %}" style="height:20px" alt="yes">
+                            {% else %}
+                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
+                            {% endif %}
+                        </td>
+                        <td>{% if word.is_known %}
+                                <img src="{% static 'core/images/bold_yes.svg' %}" style="height:20px" alt="yes">
+                            {% else %}
+                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
+                            {% endif %}
+                        </td>
                         <td><audio controls src="{% full_path word %}"></audio></td>
                         <td><a href="/words/{{word.id}}/delete"
                                onclick="return confirm('Are you sure want to delete \'{{ word.word }}\'?')">
