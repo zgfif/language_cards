@@ -18,9 +18,17 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
+from rest_framework import routers
+
 from core import views
+from core.api import views as api_views
+
+router = routers.DefaultRouter()
+router.register('words', api_views.WordViewSet)
 
 urlpatterns = [
+    path('api/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('admin/', admin.site.urls),
     path('', views.IndexView.as_view()),
     path('signup', views.SignUpView.as_view()),

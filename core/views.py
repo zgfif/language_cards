@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework.authtoken.models import Token
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
@@ -104,6 +105,8 @@ class AddWordView(TemplateView):
 class WordListView(View):
     def get(self, request):
         if request.user.is_authenticated:
+            auth_token = Token.objects.get_or_create(user=request.user)[0].key
+
             words = Word.objects.filter(added_by=request.user).order_by('en_ru', 'ru_en')
 
             WordIds(request, words).update()
@@ -111,6 +114,7 @@ class WordListView(View):
             context = {'words': words,
                        'en_ru_ids': request.session.get('en_ru_ids'),
                        'ru_en_ids': request.session.get('ru_en_ids'),
+                       'auth_token': auth_token,
                        }
 
             return render(request, template_name='words.html', context=context)

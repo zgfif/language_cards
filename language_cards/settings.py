@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -151,6 +153,7 @@ else:
     DEBUG = True
     MEDIA_ROOT = BASE_DIR / 'media/'
     MEDIA_URL = 'media/'
+    STATIC_ROOT = BASE_DIR / 'static'
 
 STATIC_URL = 'static/'
 
@@ -194,3 +197,13 @@ STORAGES = {
        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
    },
 }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 5,
+}
+

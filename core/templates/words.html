@@ -2,8 +2,6 @@
 
 {% load static %}
 
-{% load full_audio_path_tag %}
-
 {% block css %}
     <link rel="stylesheet" href="{% static 'core/words.css' %}">
 {% endblock css %}
@@ -13,19 +11,18 @@
 {% block content %}
     <div class="container">
         <br>
-
         {% if words %}
-            <!--        button to add word-->
+            <!-- button to add word -->
             <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
             <br><br>
-            <!--        button to train en-ru translation-->
+            <!-- button to train en-ru translation -->
             {%  if en_ru_ids %}
                 <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}" class="link_as_button">
                     <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ en_ru_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}
-            <!--        button to train ru_en translation-->
+            <!-- button to train ru_en translation -->
             {%  if ru_en_ids %}
                 <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}"  class="link_as_button">
                     <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ ru_en_ids|length }}</b>
@@ -33,60 +30,16 @@
                 </a>
             {% endif %}
         <br>
-        <!--   table for words     -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col"></th>
-                    <th scope="col"></th>
-                    <th scope="col"></th>
-                    <th scope="col">en-ru</th>
-                    <th scope="col">ru-en</th>
-                    <th scope="col">known</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for word in words %}
-                    <tr>
-                        <td><b>{{ word.word }}</b></td>
-                        <td>{{ word.translation }}</td>
-                        <td>{{ word.sentence }}</td>
-<!--                        knows en-ru translation -->
-                        <td>{% if word.en_ru %}
-                                <img src="{% static 'core/images/yes.svg' %}" style="height:20px" alt="yes">
-                            {% else %}
-                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
-                            {% endif %}
-                        </td>
-                        <!--                        knows ru-en translation -->
-                        <td>{% if word.ru_en %}
-                                <img src="{% static 'core/images/yes.svg' %}" style="height:20px" alt="yes">
-                            {% else %}
-                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
-                            {% endif %}
-                        </td>
-                        <td>{% if word.is_known %}
-                                <img src="{% static 'core/images/bold_yes.svg' %}" style="height:20px" alt="yes">
-                            {% else %}
-                                <img src="{% static 'core/images/no.svg' %}" style="height:20px" alt="no">
-                            {% endif %}
-                        </td>
-                        <td><audio controls src="{% full_path word %}"></audio></td>
-                        <td><a href="/words/{{word.id}}/delete"
-                               onclick="return confirm('Are you sure want to delete \'{{ word.word }}\'?')">
-                                delete
-                            </a>
-                        </td>
-                        <td><a href="/words/{{word.id}}/edit">edit</a></td>
-                        <td><a href="/words/{{word.id}}/reset">reset progress</a></td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- table for words -->
+       {% include 'snippets/words_table.html' %}
         <br>
         {% else %}
             <p>You haven't added any words yet. Please, <a href="/add_word">add word</a> to start your learning.</p>
         {% endif %}
-
     </div>
 {% endblock %}
+
+
+{% block js %}
+    <script src="{% static 'core/words.js' %}"></script>
+{% endblock js %}
