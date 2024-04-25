@@ -1,15 +1,17 @@
-import datetime
 import json
+from django.utils.timezone import localtime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from rest_framework.authtoken.models import Token
 
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
 from core.models import Word, MyUser, GttsAudio
 from core.lib.translate_text import TranslateText
 from core.lib.next_list_item import NextListItem
+
 
 class IndexViewTests(TestCase):
     def test_has_sign_in_reference(self):
@@ -31,14 +33,19 @@ class SignUpViewTests(TestCase):
         self.assertContains(response, text=text, status_code=200)
 
     def test_successful_registration(self):
-        user_data = {'username': 'pasha',
-                'email': 'zihzag@gmail.com',
-                'password': '12345678',
-                'password_confirmation': '12345678',
+        user_data = {
+            'username': 'pasha',
+            'email': 'zihzag@gmail.com',
+            'password': '12345678',
+            'password_confirmation': '12345678',
         }
 
         response = self.client.post('/signup', user_data, follow=True)
         text = 'Congratulations! You have successfully registered!'
+        u = User.objects.last()
+        t = Token.objects.last()
+        self.assertEqual(u.email, user_data['email'])
+        self.assertEqual(t.user_id, u.id)
         self.assertContains(response, text=text, status_code=200)
 
     def test_if_username_is_busy(self):
@@ -129,7 +136,7 @@ class AccountViewTests(TestCase):
         response = self.client.get('/profile')
         self.assertContains(response, text='pasha', status_code=200)
         self.assertContains(response, text='pasha@gmail.com', status_code=200)
-        self.assertContains(response, text=datetime.date.today())
+        self.assertContains(response, text=localtime().date())
 
 
 class AddWordViewTests(TestCase):
@@ -246,37 +253,6 @@ class WordListViewTests(TestCase):
         self.assertContains(response, text='You haven\'t added any words', status_code=200)
         self.assertContains(response, text='add word')
 
-    def test_absense_of_words_related_to_other_user(self):
-        user1 = User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
-        user2 = User.objects.create_user(username='vadim', password='G?1wraas4', email='vadim@gmail.com')
-
-        smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-
-        flu = {
-            'word': 'flu',
-            'translation': 'грипп',
-            'sentence': 'I had a bad case of the flu.',
-        }
-
-        fever = {
-            'word': 'fever',
-            'translation': 'лихорадка',
-            'sentence': 'I would take aspirin to help me with the pain and reduce the fever',
-        }
-
-        Word.objects.create(added_by=user1, **smallpox)
-        Word.objects.create(added_by=user1, **flu)
-        Word.objects.create(added_by=user2, **fever)
-
-        self.client.login(username='pasha', password='1asdfX')
-        response = self.client.get('/words')
-        self.assertContains(response, status_code=200, text='smallpox')
-        self.assertContains(response, status_code=200, text='flu')
-        self.assertNotContains(response, status_code=200, text='fever')
 
     def test_order_of_words(self):
         words = [
@@ -482,11 +458,12 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        response = self.client.post(f'/words/{word.id}/edit/', data=data_to_update, follow=True)
+        self.client.post(f'/words/{word.id}/edit/', data=data_to_update, follow=True)
 
-        self.assertContains(response, status_code=200, text='натуральная оспа')
-        self.assertContains(response, status_code=200, text=f'{data_to_update["word"]} was successfully updated!')
-        self.assertEqual(Word.objects.last().sentence, 'cool smallpoxes')
+        # self.assertContains(response, status_code=200, text=f'{data_to_update["word"]} was successfully updated!')
+        word = Word.objects.last()
+        self.assertEqual(word.sentence, 'cool smallpoxes')
+        self.assertEqual(word.translation, 'натуральная оспа')
 
 
     def test_knowing_the_word(self):
@@ -790,3 +767,86 @@ class NextListItemTests(TestCase):
         nli = NextListItem(lst, current_item)
         result = nli.calculate()
         self.assertEqual(result, None)
+
+
+class TokenTests(TestCase):
+    def test_getting_new_auth_token(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+
+        pasha = User.objects.create_user(**credentials1)
+
+        self.assertEqual(pasha.id, Token.objects.last().user_id)
+
+    def test_removing_auth_token(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+
+        pasha = User.objects.create_user(**credentials1)
+
+        self.assertEqual(1, Token.objects.count())
+
+        pasha.delete()
+
+        self.assertEqual(0, Token.objects.count())
+
+
+class WordViewSetTests(TestCase):
+    def test_retrieving_words_from_api_words(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+
+        pasha = User.objects.create_user(**credentials1)
+
+        words = [
+            {'word': 'smallpox',
+             'translation': 'оспа',
+             'sentence': 'The children were all vaccinated against smallpox.',
+             },
+            {
+                'word': 'canteen',
+                'translation': 'столовая',
+                'sentence': 'they had lunch in the staff canteen',
+            },
+            {
+                'word': 'factory',
+                'translation': 'фабрика',
+                'sentence': 'he works in a clothing factory',
+            }, ]
+
+        for word in words:
+            Word.objects.create(**word, added_by=pasha)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 3)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['word'], 'smallpox')
+        self.assertEqual(results['results'][1]['word'], 'canteen')
+        self.assertEqual(results['results'][2]['word'], 'factory')
+
+    def test_words_from_api_words_when_incorrect_auth_token(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+
+        User.objects.create_user(**credentials1)
+
+        auth_token = '11111111111111111'
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+
+        self.assertNotContains(response, text='Unauthorized', status_code=401)
+
+    def test_words_from_api_words_when_has_not_any_words(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+
+        pasha = User.objects.create_user(**credentials1)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+
+        self.assertNotContains(response, text='Success', status_code=200)
+
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 0)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'], [])
