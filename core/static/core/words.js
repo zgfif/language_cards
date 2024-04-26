@@ -57,31 +57,33 @@ function auth_token() {
 // this function appends a new row to table the row has 10 cells with data retrieved form results
 function fill_table_with_data(results = false) {
     if (results) {
-         const table_body = document.getElementById("tableBody");
+        const table_body = document.getElementById("tableBody");
 
-         for (let word of results) {
-            let row = table_body.insertRow(-1);
-            const cell1 = row.insertCell(0);
-            const cell2 = row.insertCell(1);
-            const cell3 = row.insertCell(2);
-            const cell4 = row.insertCell(3);
-            const cell5 = row.insertCell(4);
-            const cell6 = row.insertCell(5);
-            const cell7 = row.insertCell(6);
-            const cell8 = row.insertCell(7);
-            const cell9 = row.insertCell(8);
-            const cell10 = row.insertCell(9);
+        if (table_body) {
+           for (let word of results) {
+                let row = table_body.insertRow(-1);
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                const cell3 = row.insertCell(2);
+                const cell4 = row.insertCell(3);
+                const cell5 = row.insertCell(4);
+                const cell6 = row.insertCell(5);
+                const cell7 = row.insertCell(6);
+                const cell8 = row.insertCell(7);
+                const cell9 = row.insertCell(8);
+                const cell10 = row.insertCell(9);
 
-            cell1.innerHTML = `<b>${word['word']}</b>`;
-            cell2.innerHTML = word['translation'];
-            cell3.innerHTML = word['sentence'];
-            cell4.innerHTML = image_tag(word['en_ru'], 'yes.svg', 'no.svg')
-            cell5.innerHTML = image_tag(word['ru_en'], 'yes.svg', 'no.svg')
-            cell6.innerHTML = image_tag(word['is_known'], 'bold_yes.svg', 'no.svg')
-            cell7.innerHTML = `<audio controls src="${word['full_audio_path']}"></audio>`;
-            cell8.innerHTML = `<a class="delWordBtn" data-word="${word['word']}" href="/words/${word['id']}/delete">delete</a>`;
-            cell9.innerHTML = `<a href="/words/${word['id']}/edit">edit</a>`;
-            cell10.innerHTML = `<a href="/words/${word['id']}/reset">reset progress</a>`;
+                cell1.innerHTML = `<b>${word['word']}</b>`;
+                cell2.innerHTML = word['translation'];
+                cell3.innerHTML = word['sentence'];
+                cell4.innerHTML = image_tag(word['en_ru'], 'yes.svg', 'no.svg')
+                cell5.innerHTML = image_tag(word['ru_en'], 'yes.svg', 'no.svg')
+                cell6.innerHTML = image_tag(word['is_known'], 'bold_yes.svg', 'no.svg')
+                cell7.innerHTML = `<audio controls src="${word['full_audio_path']}"></audio>`;
+                cell8.innerHTML = `<a class="delWordBtn" data-word="${word['word']}" href="/words/${word['id']}/delete">delete</a>`;
+                cell9.innerHTML = `<a href="/words/${word['id']}/edit">edit</a>`;
+                cell10.innerHTML = `<a href="/words/${word['id']}/reset">reset progress</a>`;
+            }
         }
     }
 }
