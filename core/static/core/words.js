@@ -37,7 +37,7 @@ function get_words_from_api(url, auth_token) {
                 $('#moreWordsButton').attr("style", "display:none");
             }
         } else {
-            console.log('something went wrong')
+            console.log('something went wrong');
         }
     }, 'json')
 }
@@ -45,7 +45,12 @@ function get_words_from_api(url, auth_token) {
 
 // this function is used to retrieve Authorization token from element with 'data-auth-token' attribute
 function auth_token() {
-    return document.querySelector('[data-auth-token]').getAttribute('data-auth-token');
+    const auth_node = document.querySelector('[data-auth-token]');
+   if (auth_node) {
+        return auth_node.getAttribute('data-auth-token');
+   } else {
+        return null
+   }
 }
 
 
