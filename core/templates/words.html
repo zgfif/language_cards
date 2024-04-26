@@ -11,6 +11,9 @@
 {% block content %}
     <div class="container">
         <br>
+        <!--this authentication token is used in words.js static file -->
+        <input type="hidden" data-auth-token="{{ auth_token }}">
+
         {% if words %}
             <!-- button to add word -->
             <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
@@ -29,10 +32,10 @@
                     </button>
                 </a>
             {% endif %}
-        <br>
-        <!-- table for words -->
-       {% include 'snippets/words_table.html' %}
-        <br>
+            <br>
+            <!-- table for words -->
+            {% include 'snippets/words_table.html' %}
+             <br>
         {% else %}
             <p>You haven't added any words yet. Please, <a href="/add_word">add word</a> to start your learning.</p>
         {% endif %}
