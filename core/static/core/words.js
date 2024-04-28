@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", (event) => {
-    // assign Authorization Token to variable for further use in "get_words_from_api" function
+    // assign the Authorization Token to variable for further use in "get_words_from_api" function
     const authorization_token = auth_token();
 
 
@@ -13,6 +13,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
         return confirm(message);
     });
 });
+
+
+// declaration of functions is below
 
 
 // this function is used to retrieve data from /api/words using Authorization token
@@ -60,40 +63,83 @@ function fill_table_with_data(results = false) {
         const table_body = document.getElementById("tableBody");
 
         if (table_body) {
+           // we iterate over our the word's list [{'word': , 'translation':, 'sentence': ,..}, {}, ..., {}]
            for (let word of results) {
-                let row = table_body.insertRow(-1);
-                const cell1 = row.insertCell(0);
-                const cell2 = row.insertCell(1);
-                const cell3 = row.insertCell(2);
-                const cell4 = row.insertCell(3);
-                const cell5 = row.insertCell(4);
-                const cell6 = row.insertCell(5);
-                const cell7 = row.insertCell(6);
-                const cell8 = row.insertCell(7);
-                const cell9 = row.insertCell(8);
-                const cell10 = row.insertCell(9);
+                // add a new row in the end of existing table (this row will contain word, translation, sentence, etc)
+                let main_row = table_body.insertRow(-1);
+                    // inside the new word's row a new cell
+                    first_cell = main_row.insertCell(0);
 
-                cell1.innerHTML = `<b>${word['word']}</b>`;
-                cell2.innerHTML = word['translation'];
-                cell3.innerHTML = word['sentence'];
-                cell4.innerHTML = image_tag(word['en_ru'], 'yes.svg', 'no.svg')
-                cell5.innerHTML = image_tag(word['ru_en'], 'yes.svg', 'no.svg')
-                cell6.innerHTML = image_tag(word['is_known'], 'bold_yes.svg', 'no.svg')
-                cell7.innerHTML = `<audio controls src="${word['full_audio_path']}"></audio>`;
-                cell8.innerHTML = `<a class="delWordBtn" data-word="${word['word']}" href="/words/${word['id']}/delete">delete</a>`;
-                cell9.innerHTML = `<a href="/words/${word['id']}/edit">edit</a>`;
-                cell10.innerHTML = `<a href="/words/${word['id']}/reset">reset progress</a>`;
+                    // as any cells haven't method "insertRow" we have to create a new "inner" table
+                    inner_table = document.createElement('table');
+
+                    // insert "inner" table into "main" cell
+                    first_cell.appendChild(inner_table);
+
+                    // insert 3 rows into the "inner" table
+                    inner_row1 = inner_table.insertRow(0) // row for "word", audio tag and badge (two ellipses)
+                    inner_row2 = inner_table.insertRow(1) // row for "translation"
+                    inner_row3 = inner_table.insertRow(2) // row for "sentence"
+
+                    // row contains 'cat', 'cat' audio tag and two green or white ellipses
+                    // (depends on boolean ru_en and en_ru) "green" is true, "white" is false
+                    inner_row1.innerHTML = `<div id="word_and_audio_div">
+                                                <b style="padding-right:15px;">${word['word']}</b>
+                                                <audio style="padding-right:15px;" controls src="${word['full_audio_path']}"></audio>
+                                                ${image_badge_tag(ru_en = word['ru_en'], en_ru = word['en_ru'])}
+                                            </div>`;
+
+                    // "кошка" translation
+                    inner_row2.innerHTML = word['translation'];
+
+                    // sentence, for example: "It's very difficult to find black cat in black room."
+                    inner_row3.innerHTML = word['sentence'];
+
+                    // add new cell to "main" row for dropdown menu (three dots sign)
+                    second_cell = main_row.insertCell(1)
+
+                    // this "second" cell in the "main" row contains menu:
+                    // 1 menu item: update
+                    // 2 menu item: reset progress (make en_ru false, and ru_en false again)
+                    // 3 menu item: delete word from user's vocabulary
+                    second_cell.innerHTML = `<div class="dropdown">
+                                      <img src="/static/core/images/three_v_dots.svg" class="dropdown-toggle"
+                                            data-bs-toggle="dropdown" aria-expanded="true" alt="three_dots"
+                                            style="height:20px">
+                                      <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/words/${word['id']}/edit">update</a></li>
+                                        <li><a class="dropdown-item" href="/words/${word['id']}/reset">
+                                            reset progress
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="delWordBtn dropdown-item" data-word="${word['word']}"
+                                            style="color:red" href="/words/${word['id']}/delete">
+                                                delete
+                                            </a>
+                                        </li>
+                                      </ul>
+                                    </div>`
+
+                    second_cell.setAttribute('style', 'vertical-align: middle')
             }
         }
     }
 }
 
 
-// this function builds the image tag whose image name depends on value
-function image_tag(boolean_val, when_true, when_false) {
-    let img_name = when_false;
+// this function builds the image tag whose image name depending on boolean values of "en_ru" and "ru_en"
+// example of return: <img src="/static/core/images/ru_en_false_en_ru_true.svg" alt="progress" style="height:30px">
+function image_badge_tag(ru_en = false, en_ru = false) {
+    let img_name = 'ru_en_false_en_ru_false.svg';
 
-    if (boolean_val) {img_name = when_true }
+    if (ru_en && en_ru) {
+        img_name = 'ru_en_true_en_ru_true.svg';
+    } else if (ru_en && !en_ru) {
+        img_name = 'ru_en_true_en_ru_false.svg';
+    } else if (!ru_en && en_ru) {
+        img_name = 'ru_en_false_en_ru_true.svg';
+    }
 
-    return `<img src="/static/core/images/${img_name}" alt="${boolean_val}" style="height:20px">`
+    return `<img src="/static/core/images/${img_name}" alt="progress" style="height:30px">`
 }

@@ -3,3 +3,10 @@
 .link_as_button {
     text-decoration: none;
 }
+
+/* this id is used to configure alignment and position of word and audio tag in one cell of table */
+#word_and_audio_div {
+    width: fit-content;
+    display: flex;
+    align-items: center;
+}
