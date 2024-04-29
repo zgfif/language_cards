@@ -4,9 +4,14 @@
     text-decoration: none;
 }
 
-/* this id is used to configure alignment and position of word and audio tag in one cell of table */
-#word_and_audio_div {
+/* this class is used to configure alignment and position of word and audio tag in one cell of table */
+.word_and_audio_div {
     width: fit-content;
     display: flex;
     align-items: center;
 }
+
+/* this class is used for "play" button on each word row */
+/*.playBtn {
+   margin-right: 15px;
+}*/
