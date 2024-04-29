@@ -12,6 +12,12 @@ document.addEventListener("DOMContentLoaded", (event) => {
         message = `Are you sure want to delete "${$(event.target).attr('data-word')}"?`
         return confirm(message);
     });
+
+    // play audio pronunciation after clicking on "play" button
+    $(document).on('click', '.playBtn', function(event) {
+        play_element = $(event.target.parentNode).find('.audioTag');
+        play_element[0].play();
+    })
 });
 
 
@@ -77,23 +83,24 @@ function fill_table_with_data(results = false) {
                     first_cell.appendChild(inner_table);
 
                     // insert 3 rows into the "inner" table
-                    inner_row1 = inner_table.insertRow(0) // row for "word", audio tag and badge (two ellipses)
+                    inner_row1 = inner_table.insertRow(0) // row for "word", audio tag and badge (two rectangles)
                     inner_row2 = inner_table.insertRow(1) // row for "translation"
                     inner_row3 = inner_table.insertRow(2) // row for "sentence"
 
-                    // row contains 'cat', 'cat' audio tag and two green or white ellipses
+                    // row contains 'cat', 'cat' audio tag and two "progress" rectangles
                     // (depends on boolean ru_en and en_ru) "green" is true, "white" is false
-                    inner_row1.innerHTML = `<div id="word_and_audio_div">
-                                                <b style="padding-right:15px;">${word['word']}</b>
-                                                <audio style="padding-right:15px;" controls src="${word['full_audio_path']}"></audio>
+                    inner_row1.innerHTML = `<div class="word_and_audio_div">
+                                                <img class="playBtn" src="/static/core/images/play.svg" height="20px" alt="play button">
                                                 ${image_badge_tag(ru_en = word['ru_en'], en_ru = word['en_ru'])}
+                                                <b style="padding-right:15px;">${word['word']}</b>
+                                                <audio class="audioTag" style="padding-right:15px;" controls src="${word['full_audio_path']}" hidden></audio>
                                             </div>`;
 
                     // "кошка" translation
                     inner_row2.innerHTML = word['translation'];
 
                     // sentence, for example: "It's very difficult to find black cat in black room."
-                    inner_row3.innerHTML = word['sentence'];
+                    inner_row3.innerHTML =  word['sentence'];
 
                     // add new cell to "main" row for dropdown menu (three dots sign)
                     second_cell = main_row.insertCell(1)
@@ -102,7 +109,8 @@ function fill_table_with_data(results = false) {
                     // 1 menu item: update
                     // 2 menu item: reset progress (make en_ru false, and ru_en false again)
                     // 3 menu item: delete word from user's vocabulary
-                    second_cell.innerHTML = `<div class="dropdown">
+                    second_cell.innerHTML = `
+                                    <div class="dropdown">
                                       <img src="/static/core/images/three_v_dots.svg" class="dropdown-toggle"
                                             data-bs-toggle="dropdown" aria-expanded="true" alt="three_dots"
                                             style="height:20px">
@@ -129,17 +137,17 @@ function fill_table_with_data(results = false) {
 
 
 // this function builds the image tag whose image name depending on boolean values of "en_ru" and "ru_en"
-// example of return: <img src="/static/core/images/ru_en_false_en_ru_true.svg" alt="progress" style="height:30px">
+// example of return: <img src="/static/core/images/false_true.svg" alt="progress" style="height:20px">
 function image_badge_tag(ru_en = false, en_ru = false) {
-    let img_name = 'ru_en_false_en_ru_false.svg';
+    let img_name = 'false_false.svg';
 
     if (ru_en && en_ru) {
-        img_name = 'ru_en_true_en_ru_true.svg';
+        img_name = 'true_true.svg';
     } else if (ru_en && !en_ru) {
-        img_name = 'ru_en_true_en_ru_false.svg';
+        img_name = 'true_false.svg';
     } else if (!ru_en && en_ru) {
-        img_name = 'ru_en_false_en_ru_true.svg';
+        img_name = 'false_true.svg';
     }
 
-    return `<img src="/static/core/images/${img_name}" alt="progress" style="height:30px">`
+    return `<img src="/static/core/images/${img_name}" alt="progress" style="margin: 0 10px;height:20px">`
 }
