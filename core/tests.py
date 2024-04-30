@@ -49,65 +49,73 @@ class SignUpViewTests(TestCase):
         self.assertContains(response, text=text, status_code=200)
 
     def test_if_username_is_busy(self):
-        user_data = {'username': 'pasha',
+        user_data = {
+                    'username': 'pasha',
                      'email': 'zihzag@gmail.com',
                      'password': '12345678',
                      }
 
         User.objects.create_user(**user_data)
+
         response = self.client.post('/signup', {'username': 'pasha', 'email': 'pasha@gmail.com', 'password': '1234', 'password_confirmation': '1234'})
         text = 'Entered username or/and email is already exists'
         self.assertContains(response, text=text, status_code=200)
 
     def test_if_email_is_busy(self):
-        user_data = {'username': 'pasha',
+        user_data = {
+                    'username': 'pasha',
                      'email': 'zihzag@gmail.com',
                      'password': '12345678',
                      }
 
         User.objects.create_user(**user_data)
-        response = self.client.post('/signup', {'username': 'Pavel', 'email': 'zihzag@gmail.com', 'password': '1234', 'password_confirmation': '1234'})
+
+        post_data = {'username': 'Pavel', 'email': 'zihzag@gmail.com', 'password': '1234',
+                     'password_confirmation': '1234'}
+
+        response = self.client.post('/signup', post_data)
         text = 'Entered username or/and email is already exists'
         self.assertContains(response, text=text, status_code=200)
 
     def test_if_password_and_password_confirmation_different(self):
-        response = self.client.post('/signup', {'username': 'Pavel', 'email': 'zihzag@gmail.com', 'password': '1234', 'password_confirmation': '12345'})
+        post_data = {'username': 'Pavel', 'email': 'zihzag@gmail.com', 'password': '1234',
+                     'password_confirmation': '12345'}
+        response = self.client.post('/signup', post_data)
         text = 'Password and Password confirmation must be the same'
         self.assertContains(response, text=text, status_code=200)
 
 
 class SignInViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(username='pasha', password='1asdfX', email='zihzag@gmail.com')
+
     def test_has_form_to_signin(self):
         response = self.client.get('/signin')
         self.assertContains(response, text='password', status_code=200)
         self.assertContains(response, text='username/email', status_code=200)
 
     def test_incorrect_username(self):
-        User.objects.create_user(username='Pavel', password='1asdfX')
-        response = self.client.post('/signin', {'username': 'pasha', 'password': '1asdfX'})
+        response = self.client.post('/signin', {'username': 'dima', 'password': '1asdfX'})
         self.assertContains(response, text='Incorrect username/email/password', status_code=200)
         self.assertNotContains(response, text='Sign out', status_code=200)
 
     def test_incorrect_email(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='zihzag@gmail.com')
         response = self.client.post('/signin', {'username': 'pasha@gmail.com', 'password': '1asdfX'})
         self.assertContains(response, text='Incorrect username/email/password', status_code=200)
         self.assertNotContains(response, text='Sign out', status_code=200)
 
     def test_incorrect_password(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='zihzag@gmail.com')
         response = self.client.post('/signin', {'username': 'zihzag@gmail.com', 'password': '111111'})
         self.assertContains(response, text='Incorrect username/email/password', status_code=200)
         self.assertNotContains(response, text='Sign out', status_code=200)
 
     def test_by_email(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='zihzag@gmail.com')
         response = self.client.post('/signin', {'username': 'zihzag@gmail.com', 'password': '1asdfX'}, follow=True)
         self.assertContains(response, text='Hello', status_code=200)
         self.assertContains(response, text='Sign out', status_code=200)
 
     def test_by_username(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='zihzag@gmail.com')
         response = self.client.post('/signin', {'username': 'pasha', 'password': '1asdfX'}, follow=True)
         self.assertContains(response, text='Hello', status_code=200)
         self.assertContains(response, text='Sign out', status_code=200)
@@ -116,24 +124,31 @@ class SignInViewTests(TestCase):
 class LogOutViewTests(TestCase):
     def test_logout(self):
         User.objects.create_user(username='pasha', password='1asdfX')
+
         self.client.login(username='pasha', password='1asdfX')
         response_before_logout = self.client.get('/')
+
         self.assertContains(response_before_logout, text='Sign out', status_code=200)
+
         response = self.client.get('/signout')
         self.assertContains(response, text='Sign in', status_code=200)
 
 
 class AccountViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
+
     def test_opening_profile_without_authorization(self):
-        User.objects.create_user(username='pasha', password='1asdfX')
         response = self.client.get('/profile', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
     def test_access_to_account_with_authorization(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
         self.client.login(username='pasha', password='1asdfX')
+
         response = self.client.get('/profile')
+
         self.assertContains(response, text='pasha', status_code=200)
         self.assertContains(response, text='pasha@gmail.com', status_code=200)
         self.assertContains(response, text=localtime().date())
@@ -143,6 +158,7 @@ class AddWordViewTests(TestCase):
     # this function removes all unnecessary gTTS files which are saved in the media/ directory during tests
     def tearDown(self):
         files_to_remove = GttsAudio.objects.all().values_list('audio_name', flat=True)
+
         for filename in files_to_remove:
             if filename:
                 RemoveFile(filename).perform()
@@ -156,8 +172,11 @@ class AddWordViewTests(TestCase):
     def test_access_to_form_for_authorized_user(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
         User.objects.create_user(**credentials)
+
         self.client.login(**credentials)
+
         response = self.client.get('/add_word')
+
         self.assertContains(response, text='word', status_code=200)
         self.assertContains(response, text='translation')
         self.assertContains(response, text='sentence')
@@ -165,6 +184,7 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
+
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
@@ -180,6 +200,7 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary_without_translation(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
+
         word_details = {
             'word': 'smallpox',
             'translation': '',
@@ -194,6 +215,7 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary_without_sentence(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
+
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
@@ -209,6 +231,7 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary_without_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
+
         word_details = {
             'word': '',
             'translation': 'оспа',
@@ -252,7 +275,6 @@ class WordListViewTests(TestCase):
         response = self.client.get('/words')
         self.assertContains(response, text='You haven\'t added any words', status_code=200)
         self.assertContains(response, text='add word')
-
 
     def test_order_of_words(self):
         words = [
@@ -790,10 +812,16 @@ class TokenTests(TestCase):
 
 
 class WordViewSetTests(TestCase):
-    def test_retrieving_words_from_api_words(self):
+    @classmethod
+    def setUpTestData(cls):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        credentials2 = {'username': 'vova', "password": '12Sxz_', 'email': 'vova@gmail.com', }
+        credentials3 = {'username': 'dima', "password": '1asdfX', 'email': 'dima@gmail.com', }
 
         pasha = User.objects.create_user(**credentials1)
+        vova = User.objects.create_user(**credentials2)
+
+        User.objects.create_user(**credentials3)
 
         words = [
             {'word': 'smallpox',
@@ -811,10 +839,23 @@ class WordViewSetTests(TestCase):
                 'sentence': 'he works in a clothing factory',
             }, ]
 
+        word4 = {
+                    'word': 'cat',
+                    'translation': 'кошка',
+                    'sentence': 'it is very difficult to find black cat in black room.',
+                }
+
+        # create 3 words for Pasha
         for word in words:
             Word.objects.create(**word, added_by=pasha)
 
+        # create 1 word for Vova
+        Word.objects.create(**word4, added_by=vova)
+
+    def test_retrieving_words_from_api_words(self):
+        pasha = User.objects.get(username="pasha")
         auth_token = Token.objects.get(user_id=pasha.id).key
+
         response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
 
         results = json.loads(response.content)
@@ -825,22 +866,42 @@ class WordViewSetTests(TestCase):
         self.assertEqual(results['results'][1]['word'], 'canteen')
         self.assertEqual(results['results'][2]['word'], 'factory')
 
+    def test_retrieving_filtered_words_from_api_words(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?word=factory', headers={'Authorization': 'Token ' + auth_token},
+                                   follow=True)
+
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['word'], 'factory')
+        self.assertEqual(results['results'][0]['translation'], 'фабрика')
+        self.assertEqual(results['results'][0]['sentence'], 'he works in a clothing factory')
+
+    def test_filter_words_when_irrelevant_word(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?word=ffff', headers={'Authorization': 'Token ' + auth_token},
+                                   follow=True)
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 0)
+
     def test_words_from_api_words_when_incorrect_auth_token(self):
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-
-        User.objects.create_user(**credentials1)
-
-        auth_token = '11111111111111111'
-        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + '11111111111111111'})
 
         self.assertNotContains(response, text='Unauthorized', status_code=401)
 
-    def test_words_from_api_words_when_has_not_any_words(self):
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+    def test_words_from_api_when_user_has_not_any_words(self):
+        dima = User.objects.get(username='dima')
 
-        pasha = User.objects.create_user(**credentials1)
+        auth_token = Token.objects.get(user_id=dima.id).key
 
-        auth_token = Token.objects.get(user_id=pasha.id).key
         response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
 
         self.assertNotContains(response, text='Success', status_code=200)
