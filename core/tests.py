@@ -50,23 +50,30 @@ class SignUpViewTests(TestCase):
 
     def test_if_username_is_busy(self):
         user_data = {
-                    'username': 'pasha',
-                     'email': 'zihzag@gmail.com',
-                     'password': '12345678',
-                     }
+            'username': 'pasha',
+            'email': 'zihzag@gmail.com',
+            'password': '12345678',
+        }
 
         User.objects.create_user(**user_data)
 
-        response = self.client.post('/signup', {'username': 'pasha', 'email': 'pasha@gmail.com', 'password': '1234', 'password_confirmation': '1234'})
+        post_data = {
+            'username': 'pasha',
+            'email': 'pasha@gmail.com',
+            'password': '1234',
+            'password_confirmation': '1234'
+        }
+
+        response = self.client.post('/signup', post_data)
         text = 'Entered username or/and email is already exists'
         self.assertContains(response, text=text, status_code=200)
 
     def test_if_email_is_busy(self):
         user_data = {
-                    'username': 'pasha',
-                     'email': 'zihzag@gmail.com',
-                     'password': '12345678',
-                     }
+            'username': 'pasha',
+            'email': 'zihzag@gmail.com',
+            'password': '12345678',
+        }
 
         User.objects.create_user(**user_data)
 
@@ -278,24 +285,26 @@ class WordListViewTests(TestCase):
 
     def test_order_of_words(self):
         words = [
-            {'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-             'en_ru': True,
-        },
-         {
-            'word': 'canteen',
-            'translation': 'столовая',
-            'sentence': 'they had lunch in the staff canteen',
-            'ru_en': True,
-        },
-         {
-            'word': 'factory',
-            'translation': 'фабрика',
-            'sentence': 'he works in a clothing factory',
-        },]
+            {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'The children were all vaccinated against smallpox.',
+                'en_ru': True,
+            },
+            {
+                'word': 'canteen',
+                'translation': 'столовая',
+                'sentence': 'they had lunch in the staff canteen',
+                'ru_en': True,
+            },
+            {
+                'word': 'factory',
+                'translation': 'фабрика',
+                'sentence': 'he works in a clothing factory',
+            },
+        ]
 
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
 
         pasha = User.objects.create_user(**credentials1)
 
@@ -409,7 +418,7 @@ class LearningPageViewTests(TestCase):
     def test_drop_unexisting_id_word(self):
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
-        user = User.objects.create_user(**credentials)
+        User.objects.create_user(**credentials)
 
         self.client.login(username=credentials['username'], password=credentials['password'])
 
@@ -431,7 +440,7 @@ class LearningPageViewTests(TestCase):
         credentials2 = {'username': 'alex', "password": '24safkl', 'email': 'alex@gmail.com'}
 
         pasha = User.objects.create_user(**credentials1)
-        alex = User.objects.create_user(**credentials2)
+        User.objects.create_user(**credentials2)
 
         self.assertEqual(User.objects.all().count(), 2)
 
@@ -486,7 +495,6 @@ class LearningPageViewTests(TestCase):
         word = Word.objects.last()
         self.assertEqual(word.sentence, 'cool smallpoxes')
         self.assertEqual(word.translation, 'натуральная оспа')
-
 
     def test_knowing_the_word(self):
         smallpox = {
@@ -543,7 +551,7 @@ class LearningPageViewTests(TestCase):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         credentials2 = {'username': 'dima', "password": '1akklk', 'email': 'dima@gmail.com'}
         pasha = User.objects.create_user(**credentials1)
-        dima = User.objects.create_user(**credentials2)
+        User.objects.create_user(**credentials2)
         word = Word.objects.create(**smallpox, added_by=pasha)
 
         self.client.login(username=credentials2['username'], password=credentials1['password'])
@@ -565,7 +573,6 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(pasha.words().count(), 0)
         self.assertEqual(pasha.known_words().count(), 0)
         self.assertEqual(pasha.unknown_words().count(), 0)
-
 
     def test_count_of_words(self):
         smallpox = {
@@ -638,7 +645,7 @@ class ResetProgress(TestCase):
             'ru_en': True,
         }
 
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
 
         pasha = User.objects.create_user(**credentials1)
 
@@ -656,22 +663,24 @@ class ResetProgress(TestCase):
 class WordIdsTests(TestCase):
     def test_retrieving_all_ids(self):
         words = [
-            {'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        },
-         {
-            'word': 'canteen',
-            'translation': 'столовая',
-            'sentence': 'they had lunch in the staff canteen',
-        },
-         {
-            'word': 'factory',
-            'translation': 'фабрика',
-            'sentence': 'he works in a clothing factory',
-        },]
+            {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'The children were all vaccinated against smallpox.',
+            },
+            {
+                'word': 'canteen',
+                'translation': 'столовая',
+                'sentence': 'they had lunch in the staff canteen',
+            },
+            {
+                'word': 'factory',
+                'translation': 'фабрика',
+                'sentence': 'he works in a clothing factory',
+            },
+        ]
 
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com',}
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
 
         pasha = User.objects.create_user(**credentials1)
 
@@ -888,6 +897,45 @@ class WordViewSetTests(TestCase):
 
         response = self.client.get('/api/words/?word=ffff', headers={'Authorization': 'Token ' + auth_token},
                                    follow=True)
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 0)
+
+    def test_filter_words_when_relivant_translation(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?translation=столовая', headers={'Authorization': 'Token ' + auth_token},
+                                   follow=True)
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['results'][0]['word'], 'canteen')
+        self.assertEqual(results['results'][0]['translation'], 'столовая')
+        self.assertEqual(results['results'][0]['sentence'], 'they had lunch in the staff canteen')
+
+    def test_filter_words_when_relevant_word_and_translation(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?translation=столовая&word=cant',
+                                   headers={'Authorization': 'Token ' + auth_token}, follow=True)
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['results'][0]['word'], 'canteen')
+        self.assertEqual(results['results'][0]['translation'], 'столовая')
+        self.assertEqual(results['results'][0]['sentence'], 'they had lunch in the staff canteen')
+
+    def test_filter_words_when_relevant_word_but_irrelevant_translation(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?translation= привет&word=cant',
+                                   headers={'Authorization': 'Token ' + auth_token}, follow=True)
         results = json.loads(response.content)
 
         self.assertEqual(results['count'], 0)

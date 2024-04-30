@@ -13,8 +13,16 @@ class WordViewSet(viewsets.ModelViewSet):
         queryset = Word.objects.filter(added_by=self.request.user).order_by('ru_en', 'en_ru')
 
         word = self.request.query_params.get('word')
+        translation = self.request.query_params.get('translation')
 
-        if word is not None:
-            queryset = queryset.filter(word__contains=word)
+        search_params = {}
+
+        if translation:
+            search_params['translation__contains'] = translation
+
+        if word:
+            search_params['word__contains'] = word
+
+        if search_params:
+            queryset = queryset.filter(**search_params)
         return queryset
-

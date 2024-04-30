@@ -15,8 +15,13 @@
         <input type="hidden" data-auth-token="{{ auth_token }}">
 
         {% if words %}
-            <!-- button to add word -->
-            <a href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
+
+            <div id="add_or_search">
+                <!-- button to add word -->
+                <a id="add_href" href="/add_word"><button class="btn btn-primary" type="button">add word</button></a>
+                <!-- search input -->
+                <input id="searchInput" class="form-control" type="search" placeholder="type here to search...">
+            </div>
             <br><br>
             <!-- button to train en-ru translation -->
             {%  if en_ru_ids %}

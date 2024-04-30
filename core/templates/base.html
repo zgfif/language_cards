@@ -22,41 +22,8 @@
     </head>
     <body>
         <header>
-            <!--            navigation bar -->
-            <nav class="navbar  fixed-top navbar-expand-lg bg-body-tertiary">
-              <div class="container-fluid">
-                <a class="navbar-brand" href="/">Learning cards</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
-                      <!--        authentication authorization block -->
-                      {% if user.is_authenticated %}
-                            <!--                      show menu items if user authenticated -->
-                            <li class="nav-item"><a class="nav-link" href="/profile">{{ user.username }}</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/words">words</a></li>
-                      {% endif %}
-                  </ul>
-                    <div class="d-flex">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        {% if user.is_authenticated %}
-                            <!--                       show sign out if user signed in-->
-                            <li class="nav-item"><a class="nav-link" href="/signout"
-                               onclick="return confirm('Are you sure want to sign out?')">Sign out</a></li>
-                        {% else %}
-                             <!--                      show "sign up" and "sign in" if user hasn't authenticated-->
-                            <li class="nav-item"><a class="nav-link" href="/signup">Sign up</a></li>
-                            <li class="nav-item"><a class="nav-link" href="/signin">Sign in</a></li>
-                        {% endif %}
-                        </ul>
-                    </div>
-                </div>
-              </div>
-            </nav>
+            <!--      navbar      -->
+            {% include 'snippets/navigation_bar.html' %}
 
               <!--            block for instant messages -->
             {% if messages %}

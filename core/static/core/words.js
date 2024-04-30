@@ -17,7 +17,20 @@ document.addEventListener("DOMContentLoaded", (event) => {
     $(document).on('click', '.playBtn', function(event) {
         play_element = $(event.target.parentNode).find('.audioTag');
         play_element[0].play();
-    })
+    });
+
+
+    $('#searchInput').on('input', function(event) {
+        clear_table()
+
+        let value = $(this).val();
+
+        if (value) {
+            setTimeout(get_words_from_api(url = `/api/words/?word=${value}`, auth_token = authorization_token), 500)
+        } else {
+            setTimeout(get_words_from_api(url = '/api/words/', auth_token = authorization_token), 500)
+        }
+    });
 });
 
 
@@ -151,3 +164,10 @@ function image_badge_tag(ru_en = false, en_ru = false) {
 
     return `<img src="/static/core/images/${img_name}" alt="progress" style="margin: 0 10px;height:20px">`
 }
+
+
+// this function removes all rows from table
+function clear_table() {
+    $('#tableBody').children('tr').remove();
+}
+
