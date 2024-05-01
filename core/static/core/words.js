@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
         let value = $(this).val();
 
         if (value) {
-            setTimeout(get_words_from_api(url = `/api/words/?word=${value}`, auth_token = authorization_token), 500)
+            setTimeout(get_words_from_api(url = `/api/words/?q=${value}`, auth_token = authorization_token), 500)
         } else {
             setTimeout(get_words_from_api(url = '/api/words/', auth_token = authorization_token), 500)
         }

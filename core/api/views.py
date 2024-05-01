@@ -1,6 +1,6 @@
 from core.models import Word
 from rest_framework import permissions, viewsets
-
+from django.db.models import Q
 from core.api.serializers import WordSerializer
 
 
@@ -14,6 +14,10 @@ class WordViewSet(viewsets.ModelViewSet):
 
         word = self.request.query_params.get('word')
         translation = self.request.query_params.get('translation')
+        common_query = self.request.query_params.get('q')
+
+        if common_query:
+            return queryset.filter(Q(translation__contains=common_query) | Q(word__contains=common_query))
 
         search_params = {}
 

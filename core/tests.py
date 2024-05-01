@@ -945,6 +945,40 @@ class WordViewSetTests(TestCase):
 
         self.assertNotContains(response, text='Unauthorized', status_code=401)
 
+    def test_search_by_word_in_words_and_translations(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?q=to', headers={'Authorization': 'Token ' + auth_token})
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['word'], 'factory')
+
+    def test_search_by_translation_in_words_and_translations(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?q=ка', headers={'Authorization': 'Token ' + auth_token})
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['translation'], 'фабрика')
+
+    def test_another_search_by_translation_in_words_and_translations(self):
+        pasha = User.objects.get(username="pasha")
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?q=о', headers={'Authorization': 'Token ' + auth_token})
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 2)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['translation'], 'оспа')
+        self.assertEqual(results['results'][1]['translation'], 'столовая')
+
     def test_words_from_api_when_user_has_not_any_words(self):
         dima = User.objects.get(username='dima')
 
