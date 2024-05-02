@@ -19,17 +19,21 @@ document.addEventListener("DOMContentLoaded", (event) => {
         play_element[0].play();
     });
 
-
+   // this event listener is used for instant search
     $('#searchInput').on('input', function(event) {
-        clear_table()
+        let current_search_value = $(this).val();
 
-        let value = $(this).val();
+       if (current_search_value.length > 0 && !consists_of_spaces(current_search_value)) {
+            clear_table()
+            get_words_from_api(url = `/api/words/?q=${current_search_value}`, auth_token = authorization_token)
 
-        if (value) {
-            setTimeout(get_words_from_api(url = `/api/words/?q=${value}`, auth_token = authorization_token), 500)
-        } else {
-            setTimeout(get_words_from_api(url = '/api/words/', auth_token = authorization_token), 500)
-        }
+//            setTimeout(function () {
+//                console.log($("#tableBody > tr").length)
+//            }, 1000)
+       } else if (current_search_value.length == 0) {
+            clear_table()
+            get_words_from_api(url = `/api/words/`, auth_token = authorization_token)
+       }
     });
 });
 
@@ -171,3 +175,11 @@ function clear_table() {
     $('#tableBody').children('tr').remove();
 }
 
+// this function validates if string has only spaces without any other symbols
+function consists_of_spaces(str = "") {
+    const str_without_spaces = str.replace(/\s+/g, '')
+
+    if (str_without_spaces.length == 0) { return true }
+
+    return false
+};
