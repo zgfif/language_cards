@@ -24,17 +24,61 @@ document.addEventListener("DOMContentLoaded", (event) => {
         let current_search_value = $(this).val();
 
        if (current_search_value.length > 0 && !consists_of_spaces(current_search_value)) {
-            clear_table()
+            clear_table();
+
+            // making request to retrieve results of searching
             get_words_from_api(url = `/api/words/?q=${current_search_value}`, auth_token = authorization_token)
 
-//            setTimeout(function () {
-//                console.log($("#tableBody > tr").length)
-//            }, 1000)
+            // we set timeout to wait 1 second until results will be loaded to table
+            setTimeout(() => {
+                // clear_all_no_found_messages
+                clear_nothing_found_rows()
+
+                // count founded words
+                let count_of_rows = $("#tableBody > tr").length;
+
+                if (count_of_rows == 0) {
+                    $("#myTable").append(`<tbody class="noResultsBody"><tr><td style="align-text:center">
+                    Nothing found with <b>"${current_search_value}"</b></td></tr></tbody>`);
+                }
+            }, 1000);
        } else if (current_search_value.length == 0) {
             clear_table()
             get_words_from_api(url = `/api/words/`, auth_token = authorization_token)
        }
     });
+
+    const movies = [
+        { title: `A New Hope`, body:`After Princess Leia, the leader of the Rebel Alliance, is held hostage by Darth Vader, Luke and Han Solo must free her and destroy the powerful weapon created by the Galactic Empire.`},
+        { title: `The Empire Strikes Back`, body: `Darth Vader is adamant about turning Luke Skywalker to the dark side. Master Yoda trains Luke to become a Jedi Knight while his friends try to fend off the Imperial fleet.` }]
+
+    function getMovies() {
+        setTimeout(() => {
+            movies.forEach((movie, index) => {
+                console.log(movie.title)
+            })
+        }, 1000);
+    }
+
+    function createMovies(movie) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                movies.push(movie);
+
+                const error = false;
+
+                if (!error) {
+                    resolve();
+                } else {
+                    reject('something went wrong!');
+                }
+
+            }, 2000);
+        });
+    }
+
+
+    createMovies({ title: '5 element', body: 'Very good film with Bruce Willis' }).then(getMovies).catch((error) => console.log(error));
 });
 
 
@@ -173,7 +217,9 @@ function image_badge_tag(ru_en = false, en_ru = false) {
 // this function removes all rows from table
 function clear_table() {
     $('#tableBody').children('tr').remove();
+
 }
+
 
 // this function validates if string has only spaces without any other symbols
 function consists_of_spaces(str = "") {
@@ -183,3 +229,11 @@ function consists_of_spaces(str = "") {
 
     return false
 };
+
+
+// before showing results we should clear nothing found rows
+function clear_nothing_found_rows() {
+    document.querySelectorAll(".noResultsBody").forEach(function(element) {
+                    element.remove();
+                });
+}
