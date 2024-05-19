@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
     // make request on 'api/words' with Authorization Token to retrieve the list of words
-    get_words_from_api(url = 'api/words', auth_token = authorization_token);
+//    get_words_from_api(url = 'api/words', auth_token = authorization_token);
 
 
     // after clicking "delete" appears the confirmation dialog "Are you sure want to delete ...?"
@@ -19,66 +19,15 @@ document.addEventListener("DOMContentLoaded", (event) => {
         play_element[0].play();
     });
 
-   // this event listener is used for instant search
-    $('#searchInput').on('input', function(event) {
-        let current_search_value = $(this).val();
 
-       if (current_search_value.length > 0 && !consists_of_spaces(current_search_value)) {
-            clear_table();
+    make_request_to_server_and_fill_table(url = 'api/words', auth_token = authorization_token);
 
-            // making request to retrieve results of searching
-            get_words_from_api(url = `/api/words/?q=${current_search_value}`, auth_token = authorization_token)
-
-            // we set timeout to wait 1 second until results will be loaded to table
-            setTimeout(() => {
-                // clear_all_no_found_messages
-                clear_nothing_found_rows()
-
-                // count founded words
-                let count_of_rows = $("#tableBody > tr").length;
-
-                if (count_of_rows == 0) {
-                    $("#myTable").append(`<tbody class="noResultsBody"><tr><td style="align-text:center">
-                    Nothing found with <b>"${current_search_value}"</b></td></tr></tbody>`);
-                }
-            }, 1000);
-       } else if (current_search_value.length == 0) {
-            clear_table()
-            get_words_from_api(url = `/api/words/`, auth_token = authorization_token)
-       }
-    });
+    searching(auth_token = authorization_token)
 });
 
 
 // declaration of functions is below
 
-
-// this function is used to retrieve data from /api/words using Authorization token
-function get_words_from_api(url, auth_token) {
-    $.get({
-    url: url,
-    headers: { 'Authorization': `Token ${auth_token}` }
-    }, function(data, status) {
-        if (status == 'success'){
-           const results = data['results'];
-
-            fill_table_with_data(results);
-
-            const next_url = data['next'];
-
-            if (next_url) {
-                $('#moreWordsButton').attr("style", "display:block");
-                 $('#moreWordsButton').click(function(){
-                    get_words_from_api(url = next_url, auth_token = auth_token);
-                 });
-            } else {
-                $('#moreWordsButton').attr("style", "display:none");
-            }
-        } else {
-            console.log('something went wrong');
-        }
-    }, 'json')
-}
 
 
 // this function is used to retrieve Authorization token from element with 'data-auth-token' attribute
@@ -94,6 +43,8 @@ function auth_token() {
 
 // this function appends a new row to table the row has 10 cells with data retrieved form results
 function fill_table_with_data(results = false) {
+    clear_table();
+
     if (results) {
         const table_body = document.getElementById("tableBody");
 
@@ -185,23 +136,93 @@ function image_badge_tag(ru_en = false, en_ru = false) {
 // this function removes all rows from table
 function clear_table() {
     $('#tableBody').children('tr').remove();
-
 }
 
 
 // this function validates if string has only spaces without any other symbols
-function consists_of_spaces(str = "") {
-    const str_without_spaces = str.replace(/\s+/g, '')
+function has_only_spaces(str = "") {
+   let result = false
 
-    if (str_without_spaces.length == 0) { return true }
+   if (str.length > 0) {
+        const str_without_spaces = str.replace(/\s+/g, '');
 
-    return false
+        if (str_without_spaces.length == 0) { result = true }
+   }
+
+   return result
 };
 
 
 // before showing results we should clear nothing found rows
 function clear_nothing_found_rows() {
-    document.querySelectorAll(".noResultsBody").forEach(function(element) {
-                    element.remove();
-                });
+    document.querySelectorAll(".noResultsBody").forEach((element) => element.remove());
+
+}
+
+
+function toggle_next_button(next_url=false) {
+    if (next_url) {
+        $('#moreWordsButton').attr("style", "display:block");
+
+        $('#moreWordsButton').click(function() {
+            get_words_from_api(url = next_url, auth_token = auth_token);
+         });
+    } else {
+        $('#moreWordsButton').attr("style", "display:none");
+    }
+};
+
+
+async function fetchData(url = 'api/words', auth_token = null) {
+    const headers = new Headers({ 'Authorization': `Token ${auth_token}`, });
+
+    const response = await fetch(url, { headers: headers });
+
+    const data = await response.json();
+
+    return data;
+}
+
+
+async function make_request_to_server_and_fill_table(url, auth_token) {
+    const data = await fetchData(url, auth_token);
+
+    fill_table_with_data(data['results']);
+
+    toggle_next_button(data['next']);
+}
+
+// this function is used to enable searching
+function searching(auth_token = null) {
+    let timer = '';
+
+    // each time user presses any key in search input we make request to search by value of input
+    $('#searchInput').keyup(function() {
+      clearTimeout(timer);
+
+      timer = setTimeout(function() {
+        let value = $('#searchInput').val()
+
+        if (!has_only_spaces(value)) {
+            // making request to retrieve results of searching
+            make_request_to_server_and_fill_table(url = `/api/words/?q=${value}`, auth_token = auth_token)
+
+            // we wait 200 milliseconds to count row results
+           setTimeout(() => {
+                 // count founded words
+                let count_of_rows = $("#tableBody > tr").length;
+                add_nothing_found_row(value, count_of_rows);
+           }, 200);
+        }
+
+      }, 1000); // Waits for 1 second after last keyup to execute the above lines of code
+    });
+}
+
+// this function is used to add row with "Nothing found with ..." to table body
+function add_nothing_found_row(query = '', count = 0) {
+    if (count == 0) {
+        $("#tableBody").append(`<tr><td style="align-text:center">
+        Nothing found with <b>"${query}"</b></td></tr>`);
+    }
 }
