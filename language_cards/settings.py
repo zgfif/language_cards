@@ -30,7 +30,7 @@ ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localh
 CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
 
 # if it is True then all media files will be stored in GSC, in other case - locally on /media
-SAVE_MEDIA_ON_GSC = True
+SAVE_MEDIA_ON_GSC = False
 
 # add this environment variable on server during production deployment, it can has any value, for example:
 # usual ENV = 'PRODUCTION', EXCEPT False!!!
@@ -190,13 +190,18 @@ GS_BUCKET_NAME = 'upload_photos_bucket'
 
 STORAGES = {
    "default": {
-       "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+       "BACKEND": "django.core.files.storage.FileSystemStorage",
        "OPTIONS": {},
    },
    "staticfiles": {
        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
    },
 }
+
+# this clause changes default storage for media files if we want to save on Google Cloud Storage
+if SAVE_MEDIA_ON_GSC:
+    STORAGES['default']['BACKEND'] = "storages.backends.gcloud.GoogleCloudStorage"
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

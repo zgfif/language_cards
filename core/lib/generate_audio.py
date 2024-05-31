@@ -38,7 +38,6 @@ class GenerateAudio:
     def save_audio(self, audio_content=None):
         if audio_content:
             content_file = ContentFile(audio_content, name=f'{self.generate_uuid()}.mp3')
-
             # initialize GttsAudio model with file and reference to word
             ga = GttsAudio(word=self.word, audio_name=content_file)
             ga.save()

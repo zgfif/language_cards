@@ -83,7 +83,6 @@ class AddWordForm(forms.Form):
     def save(self, request):
         try:
             word = Word.objects.create(added_by=request.user, **self.cleaned_data)
-
             GenerateAudio(word).perform()
 
         except:
