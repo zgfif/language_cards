@@ -29,6 +29,7 @@ router.register('words', api_views.WordViewSet)
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('accounts/', include('allauth.urls')),
     path('admin/', admin.site.urls),
     path('', views.IndexView.as_view()),
     path('signup', views.SignUpView.as_view()),

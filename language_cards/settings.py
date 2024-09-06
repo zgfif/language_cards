@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpc
 # (replace the string below with your own site URL):
 ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
 
-CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app', 'http://127.0.0.1:8000']
 
 # if it is True then all media files will be stored in GSC, in other case - locally on /media
 SAVE_MEDIA_ON_GSC = False
@@ -47,17 +47,24 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'rest_framework.authtoken',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'language_cards.urls'
@@ -165,6 +172,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'core.auth_backends.EmailAuthBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 # load gsc settings using env variables if we are deploying it on railway server
@@ -212,3 +222,20 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 5,
 }
 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/',
+        'FETCH_USERINFO': True
+
+    },
+}
