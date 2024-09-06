@@ -169,7 +169,7 @@ class AddWordViewTests(TestCase):
         for filename in files_to_remove:
             if filename:
                 RemoveFile(filename).perform()
-                RemoveFromGcs().perform(filename)
+                # RemoveFromGcs().perform(filename)
 
     def test_access_to_form_for_not_authorized_user(self):
         response = self.client.get('/add_word', follow=True)
