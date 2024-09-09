@@ -12,4 +12,4 @@ class AudioFilePath:
 
     @staticmethod
     def local_file_prefix():
-        return 'media/'
+        return '/media/'
