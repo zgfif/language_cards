@@ -10,7 +10,7 @@ class WordViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Word.objects.filter(added_by=self.request.user).order_by('ru_en', 'en_ru')
+        queryset = Word.objects.filter(added_by=self.request.user).order_by('know_native_to_studying', 'know_studying_to_native')
 
         word = self.request.query_params.get('word')
         translation = self.request.query_params.get('translation')

@@ -24,16 +24,16 @@
             </div>
             <br><br>
             <!-- button to train en-ru translation -->
-            {%  if en_ru_ids %}
-                <a href="/learn_word/en-ru/{{ en_ru_ids.0 }}" class="link_as_button">
-                    <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ en_ru_ids|length }}</b>
+            {%  if studying_to_native_ids %}
+                <a href="/learn_word/en-ru/{{ studying_to_native_ids.0 }}" class="link_as_button">
+                    <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ studying_to_native_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}
             <!-- button to train ru_en translation -->
-            {%  if ru_en_ids %}
-                <a href="/learn_word/ru-en/{{ ru_en_ids.0 }}"  class="link_as_button">
-                    <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ ru_en_ids|length }}</b>
+            {%  if native_to_studying_ids %}
+                <a href="/learn_word/ru-en/{{ native_to_studying_ids.0 }}"  class="link_as_button">
+                    <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ native_to_studying_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}

@@ -71,7 +71,7 @@ function fill_table_with_data(results = false) {
                     // (depends on boolean ru_en and en_ru) "green" is true, "white" is false
                     inner_row1.innerHTML = `<div class="word_and_audio_div">
                                                 <img class="playBtn" src="/static/core/images/play.svg" height="20px" alt="play button">
-                                                ${image_badge_tag(ru_en = word['ru_en'], en_ru = word['en_ru'])}
+                                                ${image_badge_tag(know_native_to_studying = word['know_native_to_studying'], know_studying_to_native = word['know_studying_to_native'])}
                                                 <b style="padding-right:15px;">${word['word']}</b>
                                                 <audio class="audioTag" style="padding-right:15px;" controls src="${word['full_audio_path']}" hidden></audio>
                                             </div>`;
@@ -118,14 +118,14 @@ function fill_table_with_data(results = false) {
 
 // this function builds the image tag whose image name depending on boolean values of "en_ru" and "ru_en"
 // example of return: <img src="/static/core/images/false_true.svg" alt="progress" style="height:20px">
-function image_badge_tag(ru_en = false, en_ru = false) {
+function image_badge_tag(know_native_to_studying = false, know_studying_to_native = false) {
     let img_name = 'false_false.svg';
 
-    if (ru_en && en_ru) {
+    if (know_native_to_studying && know_studying_to_native) {
         img_name = 'true_true.svg';
-    } else if (ru_en && !en_ru) {
+    } else if (know_native_to_studying && !know_studying_to_native) {
         img_name = 'true_false.svg';
-    } else if (!ru_en && en_ru) {
+    } else if (!know_native_to_studying && know_studying_to_native) {
         img_name = 'false_true.svg';
     }
 

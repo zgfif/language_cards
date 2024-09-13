@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core import validators
 
 from core.lib.generate_audio import GenerateAudio
-from core.models import Word
+from core.models import Word, StudyingLanguage
 
 
 class SignInForm(forms.Form):
@@ -69,8 +69,10 @@ class AddWordForm(forms.Form):
     translation = forms.CharField(label='translation',
                                   widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'in russian'}))
 
-    sentence = forms.CharField(label='sentence', required=False,
-                               widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'example of sentence in english'}))
+    sentence = forms.CharField(label='sentence',
+                               required=False,
+                               widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder':
+                                   'example of sentence in english'}))
 
     def clean(self):
         word = self.cleaned_data.get('word')
@@ -82,7 +84,8 @@ class AddWordForm(forms.Form):
 
     def save(self, request):
         try:
-            word = Word.objects.create(added_by=request.user, **self.cleaned_data)
+            sl = StudyingLanguage.objects.last()
+            word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
             GenerateAudio(word).perform()
 
         except:

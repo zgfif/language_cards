@@ -1,5 +1,6 @@
 import os.path
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -13,20 +14,44 @@ from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
 from language_cards import settings
 
+# these languages will be used in as possible target languages
+STUDYING_LANGUAGES = [
+    ('en', 'English'),
+    ('bg', 'Bulgarian'),
+]
+
+
+#  validate if the value is empty
+def empty_validator(value: str):
+    if value == '':
+        raise ValidationError("This field cannot be an empty string.")
+
+
+class StudyingLanguage(models.Model):
+    name = models.CharField(choices=STUDYING_LANGUAGES,
+                            max_length=255, unique=True,
+                            blank=False,
+                            null=False,
+                            validators=[empty_validator])
+
+    def __str__(self):
+        return self.name
+
 
 class Word(models.Model):
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
     word = models.CharField(max_length=255)
     translation = models.CharField(max_length=255)
     sentence = models.CharField(max_length=255, blank=True)
-    en_ru = models.BooleanField(default=False)
-    ru_en = models.BooleanField(default=False)
+    know_native_to_studying = models.BooleanField(default=False)
+    know_studying_to_native = models.BooleanField(default=False)
+    studying_lang = models.ForeignKey(StudyingLanguage, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.word
 
     def is_known(self):
-        return self.ru_en and self.en_ru
+        return self.know_native_to_studying and self.know_studying_to_native
 
     @property
     def audio_name(self):
@@ -43,6 +68,7 @@ class Word(models.Model):
 
 
 class MyUser(User):
+
     class Meta:
         proxy = True
 
@@ -50,10 +76,10 @@ class MyUser(User):
         return Word.objects.filter(added_by=self.id)
 
     def known_words(self):
-        return self.words().filter(en_ru=True, ru_en=True)
+        return self.words().filter(know_studying_to_native=True, know_native_to_studying=True)
 
     def unknown_words(self):
-        return self.words().filter(en_ru=False) | self.words().filter(ru_en=False)
+        return self.words().filter(know_studying_to_native=False) | self.words().filter(know_native_to_studying=False)
 
 
 class GttsAudio(models.Model):

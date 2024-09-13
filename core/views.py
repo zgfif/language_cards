@@ -27,8 +27,8 @@ class IndexView(View):
 
             # update learning ids
             WordIds(request, words).update()
-            context['en_ru_ids'] = request.session.get('en_ru_ids', [])
-            context['ru_en_ids'] = request.session.get('ru_en_ids', [])
+            context['studying_to_native_ids'] = request.session.get('studying_to_native_ids', [])
+            context['native_to_studying_ids'] = request.session.get('native_to_studying_ids', [])
         return render(request=request, template_name='index.html', context=context)
 
 
@@ -107,13 +107,14 @@ class WordListView(View):
         if request.user.is_authenticated:
             auth_token = Token.objects.get_or_create(user=request.user)[0].key
 
-            words = Word.objects.filter(added_by=request.user).order_by('en_ru', 'ru_en')
+            words = Word.objects.filter(added_by=request.user).order_by('know_studying_to_native',
+                                                                        'know_native_to_studying')
 
             WordIds(request, words).update()
 
             context = {'words': words,
-                       'en_ru_ids': request.session.get('en_ru_ids'),
-                       'ru_en_ids': request.session.get('ru_en_ids'),
+                       'studying_to_native_ids': request.session.get('studying_to_native_ids'),
+                       'native_to_studying_ids': request.session.get('native_to_studying_ids'),
                        'auth_token': auth_token,
                        }
 
@@ -126,13 +127,13 @@ class LearningPageView(View):
     def get(self, request):
         if request.user.is_authenticated:
             user_words = Word.objects.filter(added_by=request.user.id)
-            unknown_en_ru_words = user_words.filter(en_ru=False)
-            unknown_ru_en_words = user_words.filter(ru_en=False)
+            unknown_studying_to_native = user_words.filter(know_studying_to_native=False)
+            unknown_native_to_studying = user_words.filter(know_native_to_studying=False)
 
-            ru_word = unknown_en_ru_words.first().id if unknown_en_ru_words else None
-            en_word = unknown_ru_en_words.first().id if unknown_ru_en_words else None
+            native_word = unknown_studying_to_native.first().id if unknown_studying_to_native else None
+            studying_word = unknown_native_to_studying.first().id if unknown_native_to_studying else None
 
-            context = {'learn_ru_word': ru_word, 'learn_en_word': en_word}
+            context = {'learn_ru_word': native_word, 'learn_en_word': studying_word}
             return render(request, template_name='training_.html', context=context)
         return redirect('/signin')
 
@@ -141,12 +142,13 @@ class FromEng(View):
     direction = 'ru'
 
     def ids(self):
-        return self.request.session.get('en_ru_ids', [])
+        return self.request.session.get('studying_to_native_ids', [])
 
     def get(self, request, id):
         if request.user.is_authenticated:
             # calculate the next word id for reference
             ids = self.ids()
+
 
             next_id = NextListItem(ids, id).calculate()
 
@@ -165,9 +167,9 @@ class FromEng(View):
 
         if word.added_by == request.user:
             if obj['direction'] == 'ru':
-                word.en_ru = obj['correctness']
+                word.know_studying_to_native = obj['correctness']
             else:
-                word.ru_en = obj['correctness']
+                word.know_native_to_studying = obj['correctness']
 
             word.save()
         return JsonResponse(data={'some': 'leti leti'})
@@ -177,7 +179,7 @@ class FromRu(FromEng):
     direction = 'en'
 
     def ids(self):
-        return self.request.session.get('ru_en_ids', [])
+        return self.request.session.get('native_to_studying_ids', [])
 
 
 class DeleteWordView(View):
@@ -224,7 +226,7 @@ class ResetWordView(View):
         word = get_object_or_404(Word, id=id)
 
         if request.user.is_authenticated and word.added_by == request.user:
-            word.ru_en, word.en_ru = False, False
+            word.know_native_to_studying, word.know_studying_to_native = False, False
             word.save()
         return redirect('/words')
 

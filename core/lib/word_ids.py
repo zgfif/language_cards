@@ -8,12 +8,12 @@ class WordIds:
 
     def update(self):
         ids = list(self.words.values_list('id', flat=True))
-        en_ru_ids = list(self.words.filter(en_ru=False).values_list('id', flat=True))
-        ru_en_ids = list(self.words.filter(ru_en=False).values_list('id', flat=True))
+        studying_to_native_ids = list(self.words.filter(know_studying_to_native=False).values_list('id', flat=True))
+        native_to_studying_ids = list(self.words.filter(know_native_to_studying=False).values_list('id', flat=True))
         random.shuffle(ids)
-        random.shuffle(en_ru_ids)
-        random.shuffle(ru_en_ids)
+        random.shuffle(studying_to_native_ids)
+        random.shuffle(native_to_studying_ids)
         self.request.session['word_ids'] = ids
-        self.request.session['en_ru_ids'] = en_ru_ids
-        self.request.session['ru_en_ids'] = ru_en_ids
+        self.request.session['native_to_studying_ids'] = native_to_studying_ids
+        self.request.session['studying_to_native_ids'] = studying_to_native_ids
         self.request.session.save()
