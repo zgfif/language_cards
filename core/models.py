@@ -67,6 +67,16 @@ class Word(models.Model):
         return AudioFilePath(self).retrieve(is_local)
 
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    studying_lang = models.ForeignKey(StudyingLanguage, on_delete=models.SET_NULL, null=True)
+
+
+    def __str__(self):
+        return f'{self.user} studying: {self.studying_lang}'
+
+
+
 class MyUser(User):
 
     class Meta:
@@ -103,3 +113,11 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     # as soon as we create a new user we also create an auth token for him and save it to db
     if created:
         Token.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def create_profile_for_user(sender, instance=None, created=False, **kwargs):
+    # as soon as we create a new user we also create a new profile for him
+    if created:
+        Profile.objects.create(user=instance)
+

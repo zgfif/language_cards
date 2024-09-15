@@ -10,7 +10,7 @@ from rest_framework.authtoken.models import Token
 
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
-from core.models import Word, MyUser, GttsAudio, StudyingLanguage
+from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
 from core.lib.translate_text import TranslateText
 from core.lib.next_list_item import NextListItem
 
@@ -861,17 +861,25 @@ class WordViewSetTests(TestCase):
 
         sl = StudyingLanguage.objects.create(name='en')
 
+        bg = StudyingLanguage.objects.create(name='bg')
+        
         pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = sl
+       
+        pasha.profile.save()
+        
         vova = User.objects.create_user(**credentials2)
 
         User.objects.create_user(**credentials3)
 
         words = [
-            {'word': 'smallpox',
-             'translation': 'оспа',
-             'sentence': 'The children were all vaccinated against smallpox.',
-             'studying_lang_id': sl.id
-             },
+            {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'The children were all vaccinated against smallpox.',
+                'studying_lang_id': sl.id
+            },
             {
                 'word': 'canteen',
                 'translation': 'столовая',
@@ -883,7 +891,20 @@ class WordViewSetTests(TestCase):
                 'translation': 'фабрика',
                 'sentence': 'he works in a clothing factory',
                 'studying_lang_id': sl.id
-            }, ]
+            }, 
+            {
+                'word': 'слънце',
+                'translation': 'солнце',
+                'sentence': 'Сутринта слънцето се появи и небото се изчисти.',
+                'studying_lang_id': bg.id
+            },
+            {
+                'word': 'сако',
+                'translation': 'пиджак',
+                'sentence': 'Той облече елегантно сако за интервюто.',
+                'studying_lang_id': bg.id
+            },
+        ]
 
         word4 = {
                     'word': 'cat',
@@ -892,7 +913,7 @@ class WordViewSetTests(TestCase):
                     'studying_lang_id': sl.id
                 }
 
-        # create 3 words for Pasha
+        # create 5 words for Pasha
         for word in words:
             Word.objects.create(**word, added_by=pasha)
 
@@ -906,7 +927,8 @@ class WordViewSetTests(TestCase):
         response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
 
         results = json.loads(response.content)
-
+        
+        # we set studying_lang for pasha is English so only 3 words should be response
         self.assertEqual(results['count'], 3)
         self.assertEqual(results['next'], None)
         self.assertEqual(results['results'][0]['word'], 'smallpox')
@@ -1007,7 +1029,7 @@ class WordViewSetTests(TestCase):
 
     def test_another_search_by_translation_in_words_and_translations(self):
         pasha = User.objects.get(username="pasha")
-
+        
         auth_token = Token.objects.get(user_id=pasha.id).key
         response = self.client.get('/api/words/?q=о', headers={'Authorization': 'Token ' + auth_token})
         results = json.loads(response.content)
@@ -1033,6 +1055,37 @@ class WordViewSetTests(TestCase):
         self.assertEqual(results['results'], [])
 
 
+    def test_search_only_bulgarian_words(self):
+        pasha = User.objects.get(username="pasha")
+        
+        pasha.profile.studying_lang = StudyingLanguage.objects.last()
+        pasha.profile.save()
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?q=о', headers={'Authorization': 'Token ' + auth_token})
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 2)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['translation'], 'солнце')
+        self.assertEqual(results['results'][1]['word'], 'сако')
+
+
+    def test_words_from_api_when_user_has_not_any_words(self):
+        dima = User.objects.get(username='dima')
+
+        auth_token = Token.objects.get(user_id=dima.id).key
+
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+
+        self.assertNotContains(response, text='Success', status_code=200)
+
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 0)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'], [])
+
 class StudyingLanguageTest(TestCase):
     def test_successful_creating_language(self):
         self.assertEqual(StudyingLanguage.objects.count(), 0)
@@ -1055,4 +1108,44 @@ class StudyingLanguageTest(TestCase):
         with self.assertRaises(ValidationError):
             obj = StudyingLanguage(name='bg')
             obj.full_clean()
+
+
+class ProfileTest(TestCase):
+    def test_if_a_new_user_has_profile(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Profile.objects.count(), 0)
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(pasha.profile.studying_lang, None)
+
+
+    def test_no_profile_after_removing_user(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 1)
+        
+        User.objects.last().delete()
+        
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Profile.objects.count(), 0)
+
+
+    def test_assignment_studying_lang_to_profile(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(pasha.profile.studying_lang, None)
+        sl = StudyingLanguage.objects.create(name='en')
+        pasha.profile.studying_lang = sl
+        self.assertEqual(pasha.profile.studying_lang.name, 'en')
 
