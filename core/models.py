@@ -36,6 +36,10 @@ class StudyingLanguage(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def full_name(self):
+        return self.get_name_display()
 
 
 class Word(models.Model):

@@ -239,3 +239,5 @@ class TranslateWord(View):
         except json.JSONDecodeError:
             return JsonResponse(data={'error': 'JsonError'})
         return JsonResponse(data={'translation': translation})
+
+

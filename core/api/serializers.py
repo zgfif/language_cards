@@ -11,3 +11,8 @@ class WordSerializer(serializers.Serializer):
     know_studying_to_native = serializers.BooleanField()
     know_native_to_studying = serializers.BooleanField()
     is_known = serializers.BooleanField()
+
+
+class StudyingLanguageSerializer(serializers.Serializer):
+    name = serializers.CharField()
+

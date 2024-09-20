@@ -45,6 +45,7 @@ urlpatterns = [
     path('words/<int:id>/edit/', views.EditWordView.as_view()),
     path('words/<int:id>/reset/', views.ResetWordView.as_view()),
     path('translate', views.TranslateWord.as_view()),
+    path('toggle_lang', api_views.ToggleLanguage.as_view()),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

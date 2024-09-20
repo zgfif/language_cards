@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
@@ -1149,3 +1150,92 @@ class ProfileTest(TestCase):
         pasha.profile.studying_lang = sl
         self.assertEqual(pasha.profile.studying_lang.name, 'en')
 
+
+class ToggleStudyingLanguageTest(TestCase):
+    def test_change_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+        bg = StudyingLanguage.objects.create(name='bg')
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = bg
+        pasha.profile.save()
+
+        self.assertEqual(pasha.profile.studying_lang, bg)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, en)
+
+    
+    def test_set_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+
+        self.assertEqual(pasha.profile.studying_lang, None)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, en)
+
+
+    def test_reset_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'None'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+    def test_trying_to_set_inccorrect_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'bg'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+    def test_sending_incorrect_data(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'random': 'data'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
