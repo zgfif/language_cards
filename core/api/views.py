@@ -67,5 +67,5 @@ class ToggleLanguage(APIView):
         profile.studying_lang = studying_languages[0]
         profile.save()
         
-        return Response({'status': 'ok', 'lang': profile.studying_lang.name})
+        return Response({'status': 'ok', 'lang': profile.studying_lang.name, 'full_lang_name': profile.studying_lang.full_name})
 

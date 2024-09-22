@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core import validators
 
 from core.lib.generate_audio import GenerateAudio
-from core.models import Word, StudyingLanguage
+from core.models import Word, StudyingLanguage, STUDYING_LANGUAGES
 
 
 class SignInForm(forms.Form):
@@ -104,4 +104,7 @@ class AddWordForm(forms.Form):
         else:
             messages.success(request, f'{self.cleaned_data.get("word")} was successfully updated!')
 
+
+class StudyingLanguageForm(forms.Form):
+    name = forms.ChoiceField(label="", widget=forms.Select(attrs={'class': 'form-select'}), choices=STUDYING_LANGUAGES) 
 

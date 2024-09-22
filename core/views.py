@@ -9,7 +9,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from core.forms import SignInForm, SignUpForm, AddWordForm
+from core.forms import SignInForm, SignUpForm, AddWordForm, StudyingLanguageForm
 from core.lib.next_list_item import NextListItem
 from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
@@ -72,9 +72,12 @@ class AccountView(View):
         if request.user.is_authenticated:
             profile = MyUser.objects.get(id=request.user.id)
 
-            context = {'total': profile.words().count(),
-                       'known': profile.known_words().count(),
-                       'unknown': profile.unknown_words().count()
+            context = {
+                    'auth_token': Token.objects.get(user_id=profile.id).key,
+                    'total': profile.words().count(),
+                    'known': profile.known_words().count(),
+                    'unknown': profile.unknown_words().count(),
+                    'form': StudyingLanguageForm,
             }
 
             return render(request=request, template_name='profile.html', context=context)
