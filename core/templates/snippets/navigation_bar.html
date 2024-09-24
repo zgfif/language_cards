@@ -1,3 +1,6 @@
+{% load static %}
+
+
 <!--            Navigation bar (included in base.html) is available on all pages -->
 <nav class="navbar  fixed-top navbar-expand-lg bg-body-tertiary">
   <div class="container-fluid">
@@ -15,6 +18,12 @@
                 <!--                      show menu items if user authenticated -->
                 <li class="nav-item"><a class="nav-link" href="/profile">{{ user.username }}</a></li>
                 <li class="nav-item"><a class="nav-link" href="/words">words</a></li>
+		<li class="nav-item">
+			<!-- native language flag -->
+			<img src="{% static 'core/images/flags/ru_flag.png' %}" style="margin-top:10px;height:20px;width:20px">
+			<!-- studying language flag -->
+			<img src="{% static 'core/images/flags/' %}/{{ request.user.profile.studying_lang }}_flag.png" style="margin-top:10px;height:20px;width:20px"'>
+		</li>
           {% endif %}
       </ul>
         <div class="d-flex">
