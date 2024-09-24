@@ -84,7 +84,7 @@ class AddWordForm(forms.Form):
 
     def save(self, request):
         try:
-            sl = StudyingLanguage.objects.last()
+            sl = request.user.profile.studying_lang
             word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
             GenerateAudio(word).perform()
 

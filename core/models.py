@@ -54,6 +54,7 @@ class Word(models.Model):
     def __str__(self):
         return self.word
 
+    @property
     def is_known(self):
         return self.know_native_to_studying and self.know_studying_to_native
 
@@ -82,18 +83,20 @@ class Profile(models.Model):
 
 
 class MyUser(User):
-
     class Meta:
         proxy = True
-
+    
+    @property
     def words(self):
-        return Word.objects.filter(added_by=self.id)
-
+        return Word.objects.filter(added_by=self.id, studying_lang=self.profile.studying_lang)
+    
+    @property
     def known_words(self):
-        return self.words().filter(know_studying_to_native=True, know_native_to_studying=True)
+        return self.words.filter(know_studying_to_native=True, know_native_to_studying=True)
 
+    @property
     def unknown_words(self):
-        return self.words().filter(know_studying_to_native=False) | self.words().filter(know_native_to_studying=False)
+        return self.words.filter(know_studying_to_native=False) | self.words.filter(know_native_to_studying=False)
 
 
 class GttsAudio(models.Model):

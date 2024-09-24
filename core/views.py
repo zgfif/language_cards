@@ -21,7 +21,7 @@ class IndexView(View):
         context = {}
 
         if request.user.is_authenticated:
-            words = Word.objects.filter(added_by=request.user)
+            words = Word.objects.filter(added_by=request.user, studying_lang=request.user.profile.studying_lang)
 
             context['has_words'] = True if words else False
 
@@ -74,9 +74,9 @@ class AccountView(View):
 
             context = {
                     'auth_token': Token.objects.get(user_id=profile.id).key,
-                    'total': profile.words().count(),
-                    'known': profile.known_words().count(),
-                    'unknown': profile.unknown_words().count(),
+                    'total': profile.words.count(),
+                    'known': profile.known_words.count(),
+                    'unknown': profile.unknown_words.count(),
                     'form': StudyingLanguageForm,
             }
 
@@ -110,7 +110,7 @@ class WordListView(View):
         if request.user.is_authenticated:
             auth_token = Token.objects.get_or_create(user=request.user)[0].key
 
-            words = Word.objects.filter(added_by=request.user).order_by('know_studying_to_native',
+            words = Word.objects.filter(added_by=request.user, studying_lang=request.user.profile.studying_lang).order_by('know_studying_to_native',
                                                                         'know_native_to_studying')
 
             WordIds(request, words).update()

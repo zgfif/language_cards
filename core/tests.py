@@ -204,7 +204,9 @@ class AddWordViewTests(TestCase):
             'studying_lang_id': sl.id
         }
 
-        User.objects.create_user(**credentials)
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.profile.save()
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -238,7 +240,10 @@ class AddWordViewTests(TestCase):
             'sentence': '',
             'studying_lang_id': sl.id
         }
-        User.objects.create_user(**credentials)
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.profile.save()
+
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -248,29 +253,40 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary_without_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
-
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
         word_details = {
             'word': '',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        User.objects.create_user(**credentials)
-        self.client.login(**credentials)
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.save()
 
+        self.client.login(**credentials)
+        
         response = self.client.post('/add_word', word_details)
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
 
     def test_redirection_after_successful_adding_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
-        sl = StudyingLanguage.objects.create(name='en')
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
 
-        User.objects.create_user(**credentials)
+        u = User.objects.create_user(**credentials)
+        
+        u.profile.studying_lang = sl
+        u.profile.save()
+
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -319,11 +335,13 @@ class WordListViewTests(TestCase):
         sl = StudyingLanguage.objects.create(name='en')
 
         pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
 
         for word in words:
             Word.objects.create(**word, added_by=pasha, studying_lang=sl)
 
-        Word.objects.first().is_known()
         self.client.login(**credentials1)
 
         response = self.client.get('/words')
@@ -597,9 +615,9 @@ class LearningPageViewTests(TestCase):
 
         pasha = User.objects.create_user(**credentials1)
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 0)
-        self.assertEqual(pasha.known_words().count(), 0)
-        self.assertEqual(pasha.unknown_words().count(), 0)
+        self.assertEqual(pasha.words.count(), 0)
+        self.assertEqual(pasha.known_words.count(), 0)
+        self.assertEqual(pasha.unknown_words.count(), 0)
 
     def test_count_of_words(self):
         smallpox = {
@@ -628,9 +646,12 @@ class LearningPageViewTests(TestCase):
         Word.objects.create(**factory, added_by=pasha, studying_lang=sl)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 3)
-        self.assertEqual(pasha.known_words().count(), 0)
-        self.assertEqual(pasha.unknown_words().count(), 3)
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
+
+        self.assertEqual(pasha.words.count(), 3)
+        self.assertEqual(pasha.known_words.count(), 0)
+        self.assertEqual(pasha.unknown_words.count(), 3)
 
     def test_count_of_known_words(self):
         smallpox = {
@@ -652,16 +673,20 @@ class LearningPageViewTests(TestCase):
         }
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-        pasha = User.objects.create_user(**credentials1)
         sl = StudyingLanguage.objects.create(name='en')
+
+        pasha = User.objects.create_user(**credentials1)
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
+        
         Word.objects.create(**smallpox, added_by=pasha, know_native_to_studying=True, studying_lang=sl)
         Word.objects.create(**canteen, added_by=pasha, know_native_to_studying=True, know_studying_to_native=True, studying_lang=sl)
         Word.objects.create(**factory, added_by=pasha, know_studying_to_native=True, studying_lang=sl)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 3)
-        self.assertEqual(pasha.known_words().count(), 1)
-        self.assertEqual(pasha.unknown_words().count(), 2)
+        self.assertEqual(pasha.words.count(), 3)
+        self.assertEqual(pasha.known_words.count(), 1)
+        self.assertEqual(pasha.unknown_words.count(), 2)
 
 
 class ResetProgress(TestCase):
