@@ -95,6 +95,13 @@ class AddWordView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = AddWordForm()
+        
+        sl = self.request.user.profile.studying_lang
+        
+        if sl:
+            context['sl_short'] = sl
+            context['sl_full'] = sl.full_name.lower()
+
         return context
 
     def post(self, request):
@@ -208,8 +215,8 @@ class EditWordView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         item = get_object_or_404(Word, id=kwargs['id'])
-
-        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence})}
+        
+        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence}), 'sl_short': item.studying_lang, 'sl_full': item.studying_lang.full_name}
 
         return render(request, template_name='edit_word.html', context=context)
 
@@ -234,13 +241,15 @@ class ResetWordView(View):
         return redirect('/words')
 
 
-class TranslateWord(View):
+class TranslateApi(View):
     def post(self, request):
-        try:
-            body = json.loads(request.body)
-            translation = TranslateText('en', 'ru').perform(body.get('text', ''))
-        except json.JSONDecodeError:
-            return JsonResponse(data={'error': 'JsonError'})
-        return JsonResponse(data={'translation': translation})
+        body = json.loads(request.body)
+        source_lang, text = body.get('source_lang', ''), body.get('text', '') 
+        
+        translation = TranslateText(source_lang=source_lang, target_lang='ru').perform(text=text)
+        
+        if not translation: translation = '' 
+        
+        return JsonResponse({'status': 'ok', 'translation': translation})
 
 

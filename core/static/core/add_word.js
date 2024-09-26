@@ -1,12 +1,12 @@
 // this js file is used in add_word.html
 
-function translate_the_text(csrf_token, text) {
+function translate_the_text(csrf_token, text, studying_lang='en') {
     $.ajax({
-      url: 'translate',
+      url: '/translate',
       type: 'POST',
       headers: {'X-CSRFToken': csrf_token},
       contentType: 'application/json',
-      data: JSON.stringify({ text: text}),
+      data: JSON.stringify({source_lang: studying_lang, text: text}),
       dataType: 'json',
       success: function(data) {
         // Handle the successful response here
@@ -25,8 +25,19 @@ function translate_the_text(csrf_token, text) {
 document.addEventListener("DOMContentLoaded", (event) => {
     // retrieve csrf_token to use in request POST translate/
     const csrf_token = $('input[name="csrfmiddlewaretoken"]').val();
+	
+    // retrieve current studying language, i.e. 'english' or 'bulgarian'
+    const sl_short = $('input[id="sl"]').attr('data-sl-short');
 
-   // Set focus to the input field with id "id_word"
+    // retrieve current short name studying language, i.e. 'en' or 'bg'
+    const sl_full = $('input[id="sl"]').attr('data-sl-full');
+	console.log(sl_short, sl_full);
+    
+    // change 'in english'
+    $('input#id_word').attr('placeholder', 'in ' + sl_full);
+    $('textarea#id_sentence').attr('placeholder', 'example of sentence in ' + sl_full);
+    
+    // Set focus to the input field with id "id_word"
     $("#id_word").focus();
 
     // this event listener is used:
@@ -44,7 +55,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 //        if "word" was changed try to translate it
         if (current_text != previous_text) {
-            translate_the_text(csrf_token, current_text);
+            translate_the_text(csrf_token, current_text, studying_lang=sl_short);
             previous_text = current_text;
         }
     }, 2000);

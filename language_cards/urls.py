@@ -44,7 +44,7 @@ urlpatterns = [
     path('words/<int:id>/delete/', views.DeleteWordView.as_view()),
     path('words/<int:id>/edit/', views.EditWordView.as_view()),
     path('words/<int:id>/reset/', views.ResetWordView.as_view()),
-    path('translate', views.TranslateWord.as_view()),
+    path('translate', views.TranslateApi.as_view()),
     path('toggle_lang', api_views.ToggleLanguage.as_view()),
 ]
 

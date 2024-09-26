@@ -182,7 +182,6 @@ class AddWordViewTests(TestCase):
     def test_access_to_form_for_authorized_user(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
         User.objects.create_user(**credentials)
-
         self.client.login(**credentials)
 
         response = self.client.get('/add_word')
@@ -1264,3 +1263,27 @@ class ToggleStudyingLanguageTest(TestCase):
         client = APIClient()
         response = client.patch('/toggle_lang', {'random': 'data'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
         self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+class TranslateWorldApiTests(TestCase):
+    def test_successful_translation_from_bulgarian(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'bg', 'text':'джоб'},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], 'карман')
+
+    def test_successful_translation_from_english(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'en', 'text':'house'},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], 'дом')
+
+    def test_trying_to_translate_empty_str(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'en', 'text':''},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], '') 
+    

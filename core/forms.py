@@ -86,7 +86,7 @@ class AddWordForm(forms.Form):
         try:
             sl = request.user.profile.studying_lang
             word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
-            GenerateAudio(word).perform()
+            GenerateAudio(word, language=word.studying_lang.name).perform()
 
         except:
             messages.error(request, 'Something went wrong!')

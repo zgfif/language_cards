@@ -18,7 +18,9 @@
         {% endif %}
 
         <form method="post"> {% csrf_token %}
-                <div class="col cardRow">
+		<input type="hidden" id="sl" data-sl-full={{ sl_full }} data-sl-short={{ sl_short }}>
+                
+		<div class="col cardRow">
                     {{ form.word.label }}
                     {{ form.word }}
                 </div>
