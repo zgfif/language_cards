@@ -355,19 +355,25 @@ class LearningPageViewTests(TestCase):
 
     def test_opening_learning_page_after_authorization_with_words(self):
         smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
+            'word': 'джоб',
+            'translation': 'карман',
+            'sentence': 'Моите дънки имат два джоба',
         }
 
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        
+        sl = StudyingLanguage.objects.create(name='bg')
+        
         user = User.objects.create_user(**credentials)
+        user.profile.studying_lang=sl
+        user.profile.save()
         self.client.login(username=credentials['username'], password=credentials['password'])
-        sl = StudyingLanguage.objects.create(name='en')
+        
+        
         Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
         response = self.client.get('/training')
-        self.assertContains(response, status_code=200, text='start (en-ru)')
-        self.assertContains(response, status_code=200, text='start (ru-en)')
+        self.assertContains(response, status_code=200, text='start (bg-ru)')
+        self.assertContains(response, status_code=200, text='start (ru-bg)')
         self.assertNotContains(response, text='username/password')
 
     def test_opening_learning_page_after_authorization_without_words(self):

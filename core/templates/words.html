@@ -23,17 +23,17 @@
                 <input id="searchInput" class="form-control" type="search" placeholder="type here to search...">
             </div>
             <br><br>
-            <!-- button to train en-ru translation -->
+            <!-- button to train studying-lang-ru translation -->
             {%  if studying_to_native_ids %}
                 <a href="/learn_word/en-ru/{{ studying_to_native_ids.0 }}" class="link_as_button">
-                    <button class="btn btn-primary" type="button">train words(en-ru) <b>{{ studying_to_native_ids|length }}</b>
+                    <button class="btn btn-primary" type="button">train words({{ sl_short }}-ru) <b>{{ studying_to_native_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}
-            <!-- button to train ru_en translation -->
+            <!-- button to train ru-studying_lang translation -->
             {%  if native_to_studying_ids %}
                 <a href="/learn_word/ru-en/{{ native_to_studying_ids.0 }}"  class="link_as_button">
-                    <button class="btn btn-primary" type="button">train words(ru-en) <b>{{ native_to_studying_ids|length }}</b>
+			<button class="btn btn-primary" type="button">train words(ru-{{ sl_short }}) <b>{{ native_to_studying_ids|length }}</b>
                     </button>
                 </a>
             {% endif %}

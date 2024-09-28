@@ -13,7 +13,9 @@ class WordIds:
         random.shuffle(ids)
         random.shuffle(studying_to_native_ids)
         random.shuffle(native_to_studying_ids)
+
         self.request.session['word_ids'] = ids
         self.request.session['native_to_studying_ids'] = native_to_studying_ids
         self.request.session['studying_to_native_ids'] = studying_to_native_ids
+
         self.request.session.save()
