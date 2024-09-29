@@ -18,12 +18,12 @@
 
         {% csrf_token %}
 
-        {% if direction == 'ru' %}
-            <!--      shows en_ru card -->
-            {% include 'snippets/en_ru_card.html' %}
+        {% if direction == 'studying_to_native' %}
+            <!--      shows "studying_native" card -->
+            {% include 'snippets/studying_native_card.html' %}
         {% else %}
-            <!--      shows ru_en card -->
-            {% include 'snippets/ru_en_card.html' %}
+            <!--      shows "native_studying" card -->
+            {% include 'snippets/native_studying_card.html' %}
         {% endif %}
     </div>
 {% endblock %}

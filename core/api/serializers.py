@@ -8,6 +8,11 @@ class WordSerializer(serializers.Serializer):
     translation = serializers.CharField()
     sentence = serializers.CharField()
     full_audio_path = serializers.CharField()
-    en_ru = serializers.BooleanField()
-    ru_en = serializers.BooleanField()
+    know_studying_to_native = serializers.BooleanField()
+    know_native_to_studying = serializers.BooleanField()
     is_known = serializers.BooleanField()
+
+
+class StudyingLanguageSerializer(serializers.Serializer):
+    name = serializers.CharField()
+

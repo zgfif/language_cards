@@ -1,14 +1,17 @@
 import json
+
+from django.core.exceptions import ValidationError
 from django.utils.timezone import localtime
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
-from core.models import Word, MyUser, GttsAudio
+from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
 from core.lib.translate_text import TranslateText
 from core.lib.next_list_item import NextListItem
 
@@ -179,7 +182,6 @@ class AddWordViewTests(TestCase):
     def test_access_to_form_for_authorized_user(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
         User.objects.create_user(**credentials)
-
         self.client.login(**credentials)
 
         response = self.client.get('/add_word')
@@ -192,12 +194,18 @@ class AddWordViewTests(TestCase):
     def test_adding_word_to_dictionary(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
 
+        sl = StudyingLanguage.objects.create(name='en')
+
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
+            'studying_lang_id': sl.id
         }
-        User.objects.create_user(**credentials)
+
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.profile.save()
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -223,12 +231,18 @@ class AddWordViewTests(TestCase):
     def test_adding_word_to_dictionary_without_sentence(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
 
+        sl = StudyingLanguage.objects.create(name='en')
+
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': '',
+            'studying_lang_id': sl.id
         }
-        User.objects.create_user(**credentials)
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.profile.save()
+
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -238,29 +252,40 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary_without_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
-
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
         word_details = {
             'word': '',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        User.objects.create_user(**credentials)
-        self.client.login(**credentials)
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.save()
 
+        self.client.login(**credentials)
+        
         response = self.client.post('/add_word', word_details)
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
 
     def test_redirection_after_successful_adding_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
-
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
 
-        User.objects.create_user(**credentials)
+        u = User.objects.create_user(**credentials)
+        
+        u.profile.studying_lang = sl
+        u.profile.save()
+
         self.client.login(**credentials)
 
         response = self.client.post('/add_word', word_details, follow=True)
@@ -289,13 +314,13 @@ class WordListViewTests(TestCase):
                 'word': 'smallpox',
                 'translation': 'оспа',
                 'sentence': 'The children were all vaccinated against smallpox.',
-                'en_ru': True,
+                'know_studying_to_native': True,
             },
             {
                 'word': 'canteen',
                 'translation': 'столовая',
                 'sentence': 'they had lunch in the staff canteen',
-                'ru_en': True,
+                'know_native_to_studying': True,
             },
             {
                 'word': 'factory',
@@ -306,12 +331,16 @@ class WordListViewTests(TestCase):
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
 
+        sl = StudyingLanguage.objects.create(name='en')
+
         pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
 
         for word in words:
-            Word.objects.create(**word, added_by=pasha)
+            Word.objects.create(**word, added_by=pasha, studying_lang=sl)
 
-        Word.objects.first().is_known()
         self.client.login(**credentials1)
 
         response = self.client.get('/words')
@@ -326,18 +355,25 @@ class LearningPageViewTests(TestCase):
 
     def test_opening_learning_page_after_authorization_with_words(self):
         smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
+            'word': 'джоб',
+            'translation': 'карман',
+            'sentence': 'Моите дънки имат два джоба',
         }
 
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        
+        sl = StudyingLanguage.objects.create(name='bg')
+        
         user = User.objects.create_user(**credentials)
+        user.profile.studying_lang=sl
+        user.profile.save()
         self.client.login(username=credentials['username'], password=credentials['password'])
-        Word.objects.create(**smallpox, added_by=user)
+        
+        
+        Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
         response = self.client.get('/training')
-        self.assertContains(response, status_code=200, text='start (en-ru)')
-        self.assertContains(response, status_code=200, text='start (ru-en)')
+        self.assertContains(response, status_code=200, text='start (bg-ru)')
+        self.assertContains(response, status_code=200, text='start (ru-bg)')
         self.assertNotContains(response, text='username/password')
 
     def test_opening_learning_page_after_authorization_without_words(self):
@@ -350,7 +386,7 @@ class LearningPageViewTests(TestCase):
         self.assertContains(response, status_code=200, text="To start learning words")
         self.assertNotContains(response, text='username/password')
 
-    def test_en_ru_card(self):
+    def test_know_studying_to_native_card(self):
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',
@@ -361,18 +397,20 @@ class LearningPageViewTests(TestCase):
         user = User.objects.create_user(**credentials)
 
         self.client.login(username=credentials['username'], password=credentials['password'])
-        word = Word.objects.create(**smallpox, added_by=user)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
+        
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         self.client.login(username=credentials['username'], password=credentials['password'])
 
         self.client.get('/training')
 
-        response = self.client.get(f'/learn_word/en-ru/{word.id}', follow=True)
+        response = self.client.get(f'/studying_to_native/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
-    def test_ru_en_card(self):
+    def test_know_native_to_studying_card(self):
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',
@@ -383,14 +421,15 @@ class LearningPageViewTests(TestCase):
         user = User.objects.create_user(**credentials)
 
         self.client.login(username=credentials['username'], password=credentials['password'])
-        word = Word.objects.create(**smallpox, added_by=user)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         self.client.login(username=credentials['username'], password=credentials['password'])
 
         self.client.get('/training')
 
-        response = self.client.get(f'/learn_word/ru-en/{word.id}', follow=True)
+        response = self.client.get(f'/native_to_studying/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
@@ -405,7 +444,8 @@ class LearningPageViewTests(TestCase):
         user = User.objects.create_user(**credentials)
 
         self.client.login(username=credentials['username'], password=credentials['password'])
-        word = Word.objects.create(**smallpox, added_by=user)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
         credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         self.client.login(username=credentials['username'], password=credentials['password'])
@@ -443,8 +483,8 @@ class LearningPageViewTests(TestCase):
         User.objects.create_user(**credentials2)
 
         self.assertEqual(User.objects.all().count(), 2)
-
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials2['username'], password=credentials2['password'])
 
@@ -463,7 +503,9 @@ class LearningPageViewTests(TestCase):
 
         pasha = User.objects.create_user(**credentials1)
 
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+        
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
@@ -485,7 +527,9 @@ class LearningPageViewTests(TestCase):
 
         pasha = User.objects.create_user(**credentials1)
 
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
@@ -505,41 +549,46 @@ class LearningPageViewTests(TestCase):
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         pasha = User.objects.create_user(**credentials1)
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        self.assertEqual(word.en_ru, False)
+        self.assertEqual(word.know_studying_to_native, False)
 
-        self.assertEqual(word.ru_en, False)
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        self.assertEqual(word.know_native_to_studying, False)
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": True})
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEqual(word.en_ru, True)
-        self.assertEqual(word.ru_en, False)
+        self.assertEqual(word.know_studying_to_native, True)
+        self.assertEqual(word.know_native_to_studying, False)
 
     def test_unknowing_the_word(self):
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
-            'en_ru': True,
-            'ru_en': True,
+            'know_studying_to_native': True,
+            'know_native_to_studying': True,
         }
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
         pasha = User.objects.create_user(**credentials1)
-        word = Word.objects.create(**smallpox, added_by=pasha)
+
+        sl = StudyingLanguage.objects.create(name='en')
+
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": False})
-        self.assertEqual(word.en_ru, True)
-        self.assertEqual(word.ru_en, True)
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": False})
+        self.assertEqual(word.know_studying_to_native, True)
+        self.assertEqual(word.know_native_to_studying, True)
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEqual(word.en_ru, False)
-        self.assertEqual(word.ru_en, True)
+        self.assertEqual(word.know_studying_to_native, False)
+        self.assertEqual(word.know_native_to_studying, True)
 
     def test_change_knowing_the_word_by_another_user(self):
         smallpox = {
@@ -552,27 +601,28 @@ class LearningPageViewTests(TestCase):
         credentials2 = {'username': 'dima', "password": '1akklk', 'email': 'dima@gmail.com'}
         pasha = User.objects.create_user(**credentials1)
         User.objects.create_user(**credentials2)
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials2['username'], password=credentials1['password'])
 
-        self.assertEqual(word.en_ru, False)
+        self.assertEqual(word.know_studying_to_native, False)
 
-        self.assertEqual(word.ru_en, False)
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        self.assertEqual(word.know_native_to_studying, False)
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": True})
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
-        self.assertEqual(word.en_ru, False)
-        self.assertEqual(word.ru_en, False)
+        self.assertEqual(word.know_studying_to_native, False)
+        self.assertEqual(word.know_native_to_studying, False)
 
     def test_zero_count_of_words(self):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 
         pasha = User.objects.create_user(**credentials1)
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 0)
-        self.assertEqual(pasha.known_words().count(), 0)
-        self.assertEqual(pasha.unknown_words().count(), 0)
+        self.assertEqual(pasha.words.count(), 0)
+        self.assertEqual(pasha.known_words.count(), 0)
+        self.assertEqual(pasha.unknown_words.count(), 0)
 
     def test_count_of_words(self):
         smallpox = {
@@ -595,14 +645,18 @@ class LearningPageViewTests(TestCase):
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         pasha = User.objects.create_user(**credentials1)
-        Word.objects.create(**smallpox, added_by=pasha)
-        Word.objects.create(**canteen, added_by=pasha)
-        Word.objects.create(**factory, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+        Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
+        Word.objects.create(**canteen, added_by=pasha, studying_lang=sl)
+        Word.objects.create(**factory, added_by=pasha, studying_lang=sl)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 3)
-        self.assertEqual(pasha.known_words().count(), 0)
-        self.assertEqual(pasha.unknown_words().count(), 3)
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
+
+        self.assertEqual(pasha.words.count(), 3)
+        self.assertEqual(pasha.known_words.count(), 0)
+        self.assertEqual(pasha.unknown_words.count(), 3)
 
     def test_count_of_known_words(self):
         smallpox = {
@@ -624,15 +678,20 @@ class LearningPageViewTests(TestCase):
         }
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        sl = StudyingLanguage.objects.create(name='en')
+
         pasha = User.objects.create_user(**credentials1)
-        Word.objects.create(**smallpox, added_by=pasha, ru_en=True)
-        Word.objects.create(**canteen, added_by=pasha, ru_en=True, en_ru=True)
-        Word.objects.create(**factory, added_by=pasha, en_ru=True)
+        pasha.profile.studying_lang = sl
+        pasha.profile.save()
+        
+        Word.objects.create(**smallpox, added_by=pasha, know_native_to_studying=True, studying_lang=sl)
+        Word.objects.create(**canteen, added_by=pasha, know_native_to_studying=True, know_studying_to_native=True, studying_lang=sl)
+        Word.objects.create(**factory, added_by=pasha, know_studying_to_native=True, studying_lang=sl)
 
         pasha = MyUser.objects.get(id=pasha.id)
-        self.assertEqual(pasha.words().count(), 3)
-        self.assertEqual(pasha.known_words().count(), 1)
-        self.assertEqual(pasha.unknown_words().count(), 2)
+        self.assertEqual(pasha.words.count(), 3)
+        self.assertEqual(pasha.known_words.count(), 1)
+        self.assertEqual(pasha.unknown_words.count(), 2)
 
 
 class ResetProgress(TestCase):
@@ -641,23 +700,25 @@ class ResetProgress(TestCase):
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
-            'en_ru': True,
-            'ru_en': True,
+            'know_studying_to_native': True,
+            'know_native_to_studying': True,
         }
 
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
 
         pasha = User.objects.create_user(**credentials1)
 
-        word = Word.objects.create(**smallpox, added_by=pasha)
+        sl = StudyingLanguage.objects.create(name='en')
+
+        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
         self.client.get(f'/words/{word.id}/reset/')
 
         word = Word.objects.get(id=word.id)
-        self.assertFalse(word.ru_en)
-        self.assertFalse(word.en_ru)
+        self.assertFalse(word.know_native_to_studying)
+        self.assertFalse(word.know_studying_to_native)
 
 
 class WordIdsTests(TestCase):
@@ -684,8 +745,10 @@ class WordIdsTests(TestCase):
 
         pasha = User.objects.create_user(**credentials1)
 
+        sl = StudyingLanguage.objects.create(name='en')
+
         for word in words:
-            Word.objects.create(**word, added_by=pasha)
+            Word.objects.create(**word, added_by=pasha, studying_lang=sl)
 
         self.client.login(**credentials1)
 
@@ -736,14 +799,14 @@ class TranslateTextTests(TestCase):
         result = tt.perform(text)
         self.assertEqual(result, None)
 
-    def test_ru_en_direction(self):
+    def test_know_native_to_studying_direction(self):
         text, source_lang, target_lang = 'pen', 'en', 'ru'
         tt = TranslateText(source_lang, target_lang)
 
         result = tt.perform(text)
         self.assertEqual(result, 'ручка')
 
-    def test_en_ru_direction(self):
+    def test_know_studying_to_native_direction(self):
         text, source_lang, target_lang = 'карандаш', 'ru', 'en'
         tt = TranslateText(source_lang, target_lang)
 
@@ -827,34 +890,61 @@ class WordViewSetTests(TestCase):
         credentials2 = {'username': 'vova', "password": '12Sxz_', 'email': 'vova@gmail.com', }
         credentials3 = {'username': 'dima', "password": '1asdfX', 'email': 'dima@gmail.com', }
 
+        sl = StudyingLanguage.objects.create(name='en')
+
+        bg = StudyingLanguage.objects.create(name='bg')
+        
         pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = sl
+       
+        pasha.profile.save()
+        
         vova = User.objects.create_user(**credentials2)
 
         User.objects.create_user(**credentials3)
 
         words = [
-            {'word': 'smallpox',
-             'translation': 'оспа',
-             'sentence': 'The children were all vaccinated against smallpox.',
-             },
+            {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'The children were all vaccinated against smallpox.',
+                'studying_lang_id': sl.id
+            },
             {
                 'word': 'canteen',
                 'translation': 'столовая',
                 'sentence': 'they had lunch in the staff canteen',
+                'studying_lang_id': sl.id
             },
             {
                 'word': 'factory',
                 'translation': 'фабрика',
                 'sentence': 'he works in a clothing factory',
-            }, ]
+                'studying_lang_id': sl.id
+            }, 
+            {
+                'word': 'слънце',
+                'translation': 'солнце',
+                'sentence': 'Сутринта слънцето се появи и небото се изчисти.',
+                'studying_lang_id': bg.id
+            },
+            {
+                'word': 'сако',
+                'translation': 'пиджак',
+                'sentence': 'Той облече елегантно сако за интервюто.',
+                'studying_lang_id': bg.id
+            },
+        ]
 
         word4 = {
                     'word': 'cat',
                     'translation': 'кошка',
                     'sentence': 'it is very difficult to find black cat in black room.',
+                    'studying_lang_id': sl.id
                 }
 
-        # create 3 words for Pasha
+        # create 5 words for Pasha
         for word in words:
             Word.objects.create(**word, added_by=pasha)
 
@@ -868,7 +958,8 @@ class WordViewSetTests(TestCase):
         response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
 
         results = json.loads(response.content)
-
+        
+        # we set studying_lang for pasha is English so only 3 words should be response
         self.assertEqual(results['count'], 3)
         self.assertEqual(results['next'], None)
         self.assertEqual(results['results'][0]['word'], 'smallpox')
@@ -969,7 +1060,7 @@ class WordViewSetTests(TestCase):
 
     def test_another_search_by_translation_in_words_and_translations(self):
         pasha = User.objects.get(username="pasha")
-
+        
         auth_token = Token.objects.get(user_id=pasha.id).key
         response = self.client.get('/api/words/?q=о', headers={'Authorization': 'Token ' + auth_token})
         results = json.loads(response.content)
@@ -993,3 +1084,212 @@ class WordViewSetTests(TestCase):
         self.assertEqual(results['count'], 0)
         self.assertEqual(results['next'], None)
         self.assertEqual(results['results'], [])
+
+
+    def test_search_only_bulgarian_words(self):
+        pasha = User.objects.get(username="pasha")
+        
+        pasha.profile.studying_lang = StudyingLanguage.objects.last()
+        pasha.profile.save()
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        response = self.client.get('/api/words/?q=о', headers={'Authorization': 'Token ' + auth_token})
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 2)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['translation'], 'солнце')
+        self.assertEqual(results['results'][1]['word'], 'сако')
+
+
+    def test_words_from_api_when_user_has_not_any_words(self):
+        dima = User.objects.get(username='dima')
+
+        auth_token = Token.objects.get(user_id=dima.id).key
+
+        response = self.client.get('/api/words/', headers={'Authorization': 'Token ' + auth_token})
+
+        self.assertNotContains(response, text='Success', status_code=200)
+
+        results = json.loads(response.content)
+
+        self.assertEqual(results['count'], 0)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'], [])
+
+class StudyingLanguageTest(TestCase):
+    def test_successful_creating_language(self):
+        self.assertEqual(StudyingLanguage.objects.count(), 0)
+        StudyingLanguage.objects.create(name='en')
+        self.assertEqual(StudyingLanguage.objects.count(), 1)
+
+    def test_language_can_not_be_empty_string_unique(self):
+        with self.assertRaises(ValidationError):
+            obj = StudyingLanguage(name='')
+            obj.full_clean()
+
+    def test_language_can_not_be_out_of_choice(self):
+        with self.assertRaises(ValidationError):
+            obj = StudyingLanguage(name='ua')
+            obj.full_clean()
+
+    def test_language_must_be_unique(self):
+        StudyingLanguage.objects.create(name='bg')
+
+        with self.assertRaises(ValidationError):
+            obj = StudyingLanguage(name='bg')
+            obj.full_clean()
+
+
+class ProfileTest(TestCase):
+    def test_if_a_new_user_has_profile(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Profile.objects.count(), 0)
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(pasha.profile.studying_lang, None)
+
+
+    def test_no_profile_after_removing_user(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(Profile.objects.count(), 1)
+        self.assertEqual(User.objects.count(), 1)
+        
+        User.objects.last().delete()
+        
+        self.assertEqual(User.objects.count(), 0)
+        self.assertEqual(Profile.objects.count(), 0)
+
+
+    def test_assignment_studying_lang_to_profile(self):
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        self.assertEqual(pasha.profile.studying_lang, None)
+        sl = StudyingLanguage.objects.create(name='en')
+        pasha.profile.studying_lang = sl
+        self.assertEqual(pasha.profile.studying_lang.name, 'en')
+
+
+class ToggleStudyingLanguageTest(TestCase):
+    def test_change_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+        bg = StudyingLanguage.objects.create(name='bg')
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = bg
+        pasha.profile.save()
+
+        self.assertEqual(pasha.profile.studying_lang, bg)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, en)
+
+    
+    def test_set_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+
+        self.assertEqual(pasha.profile.studying_lang, None)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, en)
+
+
+    def test_reset_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'None'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+    def test_trying_to_set_inccorrect_studying_language_for_user(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'studying_lang': 'bg'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+    def test_sending_incorrect_data(self):
+        en = StudyingLanguage.objects.create(name='en')
+
+        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        
+        pasha = User.objects.create_user(**credentials1)
+        
+        pasha.profile.studying_lang = en
+
+        self.assertEqual(pasha.profile.studying_lang, en)
+
+        auth_token = Token.objects.get(user_id=pasha.id).key
+        
+        client = APIClient()
+        response = client.patch('/toggle_lang', {'random': 'data'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, None)
+
+
+class TranslateWorldApiTests(TestCase):
+    def test_successful_translation_from_bulgarian(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'bg', 'text':'джоб'},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], 'карман')
+
+    def test_successful_translation_from_english(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'en', 'text':'house'},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], 'дом')
+
+    def test_trying_to_translate_empty_str(self):
+        client = APIClient()
+        response = client.post('/translate', {'source_lang': 'en', 'text':''},  format='json')
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'ok')
+        self.assertEqual(data['translation'], '') 
+    

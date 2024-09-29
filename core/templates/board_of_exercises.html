@@ -5,14 +5,14 @@
         <div style="text-align:center">
             <br>
             {% if learn_ru_word %}
-                <a href="/learn_word/en-ru/{{ learn_ru_word }}">
-                    <button class="btn btn-primary" type="button">start (en-ru)</button>
+                <a href="/studying_to_native/{{ learn_ru_word }}">
+			<button class="btn btn-primary" type="button">start ({{ sl_short }}-ru)</button>
                 </a>
             {% endif %}
 
             {% if learn_en_word %}
-                <a href="/learn_word/ru-en/{{ learn_en_word }}">
-                    <button class="btn btn-primary" type="button">start (ru-en)</button>
+                <a href="/native_to_studying/{{ learn_en_word }}">
+                    <button class="btn btn-primary" type="button">start (ru-{{ sl_short }})</button>
                 </a>
             {% endif %}
 

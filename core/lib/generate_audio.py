@@ -6,21 +6,25 @@ from core.models import GttsAudio, Word
 
 
 class GenerateAudio:
-    LANG = 'en'  # by default, convert text to English
     TYPE_OF_FILE = 'mp3'  # by default, type is '.mp3'
 
-    def __init__(self, word):
+   # should be 'en' or 'bg'
+    def __init__(self, word, language='en'):
         if isinstance(word, Word):
             self.word = word
             if isinstance(word.word, str) and len(word.word) > 0:
                 self.text = word.word
         else:
             raise AttributeError('argument must be instance of Word')
+        if isinstance(language, str):
+            self.language = language 
+        else:
+            raise AttributeError('language must be string')
 
     def perform(self):
         if self.text:
             # generates mp3 file which contains the text
-            tts = gTTS(text=self.text, lang=self.LANG)
+            tts = gTTS(text=self.text, lang=self.language)
 
             # Create a temporary file
             with tempfile.NamedTemporaryFile(suffix=f'.{self.TYPE_OF_FILE}', delete=False) as temp_audio_file:

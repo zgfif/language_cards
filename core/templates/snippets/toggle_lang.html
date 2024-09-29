@@ -1,0 +1,20 @@
+{% load static %}
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        Change studying language
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse true" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+
+ 	<input type="hidden" id="auth_id" name="authId" value="{{ auth_token }}">
+      	{{ form }}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="{% static 'core/toggle_lang.js' %}"></script>

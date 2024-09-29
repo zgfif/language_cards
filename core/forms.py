@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core import validators
 
 from core.lib.generate_audio import GenerateAudio
-from core.models import Word
+from core.models import Word, StudyingLanguage, STUDYING_LANGUAGES
 
 
 class SignInForm(forms.Form):
@@ -69,8 +69,10 @@ class AddWordForm(forms.Form):
     translation = forms.CharField(label='translation',
                                   widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'in russian'}))
 
-    sentence = forms.CharField(label='sentence', required=False,
-                               widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'example of sentence in english'}))
+    sentence = forms.CharField(label='sentence',
+                               required=False,
+                               widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder':
+                                   'example of sentence in english'}))
 
     def clean(self):
         word = self.cleaned_data.get('word')
@@ -82,8 +84,9 @@ class AddWordForm(forms.Form):
 
     def save(self, request):
         try:
-            word = Word.objects.create(added_by=request.user, **self.cleaned_data)
-            GenerateAudio(word).perform()
+            sl = request.user.profile.studying_lang
+            word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
+            GenerateAudio(word, language=word.studying_lang.name).perform()
 
         except:
             messages.error(request, 'Something went wrong!')
@@ -101,4 +104,7 @@ class AddWordForm(forms.Form):
         else:
             messages.success(request, f'{self.cleaned_data.get("word")} was successfully updated!')
 
+
+class StudyingLanguageForm(forms.Form):
+    name = forms.ChoiceField(label="", widget=forms.Select(attrs={'class': 'form-select'}), choices=STUDYING_LANGUAGES) 
 

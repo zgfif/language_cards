@@ -12,6 +12,10 @@
         <p>username: <b>{{ user }}</b></p>
         <p>email: <b>{{ user.email }}</b></p>
         <p>registered: <b>{{ user.date_joined|date:"Y-m-d" }}</b></p>
+	<p>studying langugage: <b id="current_sl">{{ user.profile.studying_lang.full_name }}</b></p>
+	
+	<!-- below the snippet has the select tag to toggle studying_lang -->
+        {% include 'snippets/toggle_lang.html' %}
         <!-- information about added words-->
         <table class="table">
         <!--            head of table-->

@@ -9,7 +9,7 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from core.forms import SignInForm, SignUpForm, AddWordForm
+from core.forms import SignInForm, SignUpForm, AddWordForm, StudyingLanguageForm
 from core.lib.next_list_item import NextListItem
 from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
@@ -18,18 +18,19 @@ from core.lib.word_ids import WordIds
 
 class IndexView(View):
     def get(self, request):
+        template_name = 'index.html'
         context = {}
 
         if request.user.is_authenticated:
-            words = Word.objects.filter(added_by=request.user)
+            words = Word.objects.filter(added_by=request.user, studying_lang=request.user.profile.studying_lang)
 
             context['has_words'] = True if words else False
 
             # update learning ids
             WordIds(request, words).update()
-            context['en_ru_ids'] = request.session.get('en_ru_ids', [])
-            context['ru_en_ids'] = request.session.get('ru_en_ids', [])
-        return render(request=request, template_name='index.html', context=context)
+            context['studying_to_native_ids'] = request.session.get('studying_to_native_ids', [])
+            context['native_to_studying_ids'] = request.session.get('native_to_studying_ids', [])
+        return render(request=request, template_name=template_name, context=context)
 
 
 class SignUpView(TemplateView):
@@ -72,9 +73,12 @@ class AccountView(View):
         if request.user.is_authenticated:
             profile = MyUser.objects.get(id=request.user.id)
 
-            context = {'total': profile.words().count(),
-                       'known': profile.known_words().count(),
-                       'unknown': profile.unknown_words().count()
+            context = {
+                    'auth_token': Token.objects.get(user_id=profile.id).key,
+                    'total': profile.words.count(),
+                    'known': profile.known_words.count(),
+                    'unknown': profile.unknown_words.count(),
+                    'form': StudyingLanguageForm,
             }
 
             return render(request=request, template_name='profile.html', context=context)
@@ -92,6 +96,13 @@ class AddWordView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = AddWordForm()
+        
+        sl = self.request.user.profile.studying_lang
+        
+        if sl:
+            context['sl_short'] = sl
+            context['sl_full'] = sl.full_name.lower()
+
         return context
 
     def post(self, request):
@@ -105,17 +116,22 @@ class AddWordView(TemplateView):
 class WordListView(View):
     def get(self, request):
         if request.user.is_authenticated:
+            studying_lang = request.user.profile.studying_lang
             auth_token = Token.objects.get_or_create(user=request.user)[0].key
 
-            words = Word.objects.filter(added_by=request.user).order_by('en_ru', 'ru_en')
+            words = Word.objects.filter(added_by=request.user, studying_lang=studying_lang).order_by('know_studying_to_native',
+                                                                        'know_native_to_studying')
 
             WordIds(request, words).update()
 
             context = {'words': words,
-                       'en_ru_ids': request.session.get('en_ru_ids'),
-                       'ru_en_ids': request.session.get('ru_en_ids'),
+                       'studying_to_native_ids': request.session.get('studying_to_native_ids'),
+                       'native_to_studying_ids': request.session.get('native_to_studying_ids'),
                        'auth_token': auth_token,
                        }
+            
+            if studying_lang: 
+                context['sl_short'] = studying_lang.name
 
             return render(request, template_name='words.html', context=context)
 
@@ -124,35 +140,44 @@ class WordListView(View):
 
 class LearningPageView(View):
     def get(self, request):
+        template_name = 'board_of_exercises.html'
+
         if request.user.is_authenticated:
-            user_words = Word.objects.filter(added_by=request.user.id)
-            unknown_en_ru_words = user_words.filter(en_ru=False)
-            unknown_ru_en_words = user_words.filter(ru_en=False)
+            user_words = Word.objects.filter(added_by=request.user.id, studying_lang=request.user.profile.studying_lang)
+            unknown_studying_to_native = user_words.filter(know_studying_to_native=False)
+            unknown_native_to_studying = user_words.filter(know_native_to_studying=False)
 
-            ru_word = unknown_en_ru_words.first().id if unknown_en_ru_words else None
-            en_word = unknown_ru_en_words.first().id if unknown_ru_en_words else None
+            native_word = unknown_studying_to_native.first().id if unknown_studying_to_native else None
+            studying_word = unknown_native_to_studying.first().id if unknown_native_to_studying else None
 
-            context = {'learn_ru_word': ru_word, 'learn_en_word': en_word}
-            return render(request, template_name='training_.html', context=context)
+            context = {'learn_ru_word': native_word, 'learn_en_word': studying_word}
+            
+            studying_lang = request.user.profile.studying_lang
+
+            if studying_lang:
+                context['sl_short'] = studying_lang.name
+
+            return render(request, template_name=template_name, context=context)
         return redirect('/signin')
 
 
-class FromEng(View):
-    direction = 'ru'
+class StudyingToNativeCard(View):
+    DIRECTION = 'studying_to_native'
 
     def ids(self):
-        return self.request.session.get('en_ru_ids', [])
+        return self.request.session.get('studying_to_native_ids', [])
 
     def get(self, request, id):
         if request.user.is_authenticated:
             # calculate the next word id for reference
             ids = self.ids()
 
+
             next_id = NextListItem(ids, id).calculate()
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.direction}
-            return render(request, template_name='training.html', context=context)
+            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.DIRECTION}
+            return render(request, template_name='translation_exercise.html', context=context)
         return redirect('/signin')
 
     def post(self, request, id):
@@ -164,20 +189,20 @@ class FromEng(View):
         word = get_object_or_404(Word, id=id)
 
         if word.added_by == request.user:
-            if obj['direction'] == 'ru':
-                word.en_ru = obj['correctness']
+            if obj['direction'] == 'studying_to_native':
+                word.know_studying_to_native = obj['correctness']
             else:
-                word.ru_en = obj['correctness']
+                word.know_native_to_studying = obj['correctness']
 
             word.save()
         return JsonResponse(data={'some': 'leti leti'})
 
 
-class FromRu(FromEng):
-    direction = 'en'
+class NativeToStudyingCard(StudyingToNativeCard):
+    DIRECTION = 'native_to_studying'
 
     def ids(self):
-        return self.request.session.get('ru_en_ids', [])
+        return self.request.session.get('native_to_studying_ids', [])
 
 
 class DeleteWordView(View):
@@ -203,8 +228,8 @@ class EditWordView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         item = get_object_or_404(Word, id=kwargs['id'])
-
-        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence})}
+        
+        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence}), 'sl_short': item.studying_lang, 'sl_full': item.studying_lang.full_name}
 
         return render(request, template_name='edit_word.html', context=context)
 
@@ -224,16 +249,21 @@ class ResetWordView(View):
         word = get_object_or_404(Word, id=id)
 
         if request.user.is_authenticated and word.added_by == request.user:
-            word.ru_en, word.en_ru = False, False
+            word.know_native_to_studying, word.know_studying_to_native = False, False
             word.save()
         return redirect('/words')
 
 
-class TranslateWord(View):
+class TranslateApi(View):
     def post(self, request):
-        try:
-            body = json.loads(request.body)
-            translation = TranslateText('en', 'ru').perform(body.get('text', ''))
-        except json.JSONDecodeError:
-            return JsonResponse(data={'error': 'JsonError'})
-        return JsonResponse(data={'translation': translation})
+        body = json.loads(request.body)
+        source_lang, text = body.get('source_lang', ''), body.get('text', '') 
+        
+        translation = TranslateText(source_lang=source_lang, target_lang='ru').perform(text=text)
+        
+        if not translation: translation = '' 
+        
+        return JsonResponse({'status': 'ok', 'translation': translation})
+
+
+

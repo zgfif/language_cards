@@ -39,12 +39,13 @@ urlpatterns = [
     path('add_word', views.AddWordView.as_view()),
     path('words', views.WordListView.as_view(), name='words'),
     path('training', views.LearningPageView.as_view()),
-    path('learn_word/en-ru/<int:id>/', views.FromEng.as_view()),
-    path('learn_word/ru-en/<int:id>/', views.FromRu.as_view()),
+    path('studying_to_native/<int:id>/', views.StudyingToNativeCard.as_view()),
+    path('native_to_studying/<int:id>/', views.NativeToStudyingCard.as_view()),
     path('words/<int:id>/delete/', views.DeleteWordView.as_view()),
     path('words/<int:id>/edit/', views.EditWordView.as_view()),
     path('words/<int:id>/reset/', views.ResetWordView.as_view()),
-    path('translate', views.TranslateWord.as_view()),
+    path('translate', views.TranslateApi.as_view()),
+    path('toggle_lang', api_views.ToggleLanguage.as_view()),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
