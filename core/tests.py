@@ -406,7 +406,7 @@ class LearningPageViewTests(TestCase):
 
         self.client.get('/training')
 
-        response = self.client.get(f'/learn_word/en-ru/{word.id}', follow=True)
+        response = self.client.get(f'/studying_to_native/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
@@ -429,7 +429,7 @@ class LearningPageViewTests(TestCase):
 
         self.client.get('/training')
 
-        response = self.client.get(f'/learn_word/ru-en/{word.id}', follow=True)
+        response = self.client.get(f'/native_to_studying/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
@@ -557,8 +557,8 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(word.know_studying_to_native, False)
 
         self.assertEqual(word.know_native_to_studying, False)
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": True})
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
         self.assertEqual(word.know_studying_to_native, True)
         self.assertEqual(word.know_native_to_studying, False)
@@ -582,10 +582,10 @@ class LearningPageViewTests(TestCase):
 
         self.client.login(username=credentials1['username'], password=credentials1['password'])
 
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": False})
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": False})
         self.assertEqual(word.know_studying_to_native, True)
         self.assertEqual(word.know_native_to_studying, True)
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
         self.assertEqual(word.know_studying_to_native, False)
         self.assertEqual(word.know_native_to_studying, True)
@@ -609,8 +609,8 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(word.know_studying_to_native, False)
 
         self.assertEqual(word.know_native_to_studying, False)
-        json_data = json.dumps({"id": word.id, "direction": "ru", "correctness": True})
-        self.client.post(f'/learn_word/en-ru/{word.id}/', data=json_data, content_type='application/json')
+        json_data = json.dumps({"id": word.id, "direction": "studying_to_native", "correctness": True})
+        self.client.post(f'/studying_to_native/{word.id}/', data=json_data, content_type='application/json')
         word = Word.objects.last()
         self.assertEqual(word.know_studying_to_native, False)
         self.assertEqual(word.know_native_to_studying, False)

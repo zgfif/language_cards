@@ -161,8 +161,8 @@ class LearningPageView(View):
         return redirect('/signin')
 
 
-class FromEng(View):
-    direction = 'ru'
+class StudyingToNativeCard(View):
+    DIRECTION = 'studying_to_native'
 
     def ids(self):
         return self.request.session.get('studying_to_native_ids', [])
@@ -176,7 +176,7 @@ class FromEng(View):
             next_id = NextListItem(ids, id).calculate()
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.direction}
+            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.DIRECTION}
             return render(request, template_name='translation_exercise.html', context=context)
         return redirect('/signin')
 
@@ -189,7 +189,7 @@ class FromEng(View):
         word = get_object_or_404(Word, id=id)
 
         if word.added_by == request.user:
-            if obj['direction'] == 'ru':
+            if obj['direction'] == 'studying_to_native':
                 word.know_studying_to_native = obj['correctness']
             else:
                 word.know_native_to_studying = obj['correctness']
@@ -198,8 +198,8 @@ class FromEng(View):
         return JsonResponse(data={'some': 'leti leti'})
 
 
-class FromRu(FromEng):
-    direction = 'en'
+class NativeToStudyingCard(StudyingToNativeCard):
+    DIRECTION = 'native_to_studying'
 
     def ids(self):
         return self.request.session.get('native_to_studying_ids', [])
