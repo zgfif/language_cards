@@ -20,6 +20,7 @@ class WordViewSet(viewsets.ModelViewSet):
         word = self.request.query_params.get('word')
         translation = self.request.query_params.get('translation')
         common_query = self.request.query_params.get('q')
+        exact_word = self.request.query_params.get('exact_word')
 
         if common_query:
             return queryset.filter(Q(translation__contains=common_query) | Q(word__contains=common_query))
@@ -31,6 +32,9 @@ class WordViewSet(viewsets.ModelViewSet):
 
         if word:
             search_params['word__contains'] = word
+        
+        if exact_word:
+            search_params['word'] = exact_word
 
         if search_params:
             queryset = queryset.filter(**search_params)

@@ -96,7 +96,7 @@ class AddWordView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = AddWordForm()
-        
+        context['auth_token'] = Token.objects.get(user=self.request.user).key
         sl = self.request.user.profile.studying_lang
         
         if sl:
@@ -228,9 +228,14 @@ class EditWordView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         item = get_object_or_404(Word, id=kwargs['id'])
-        
-        context = {'form': AddWordForm(initial={'word': item.word, 'translation': item.translation, 'sentence': item.sentence}), 'sl_short': item.studying_lang, 'sl_full': item.studying_lang.full_name}
 
+        initial_values = {'word': item.word, 'translation': item.translation, 'sentence': item.sentence}
+        
+        context = {'form': AddWordForm(initial=initial_values), 
+                   'sl_short': item.studying_lang, 
+                   'sl_full': item.studying_lang.full_name
+        }
+        context['auth_token'] = Token.objects.get(user=self.request.user).key
         return render(request, template_name='edit_word.html', context=context)
 
     def post(self, request, id):
