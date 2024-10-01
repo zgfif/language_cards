@@ -12,49 +12,64 @@ function disableBtn(btn) {
 
 // assign event when the page is fully downloaded
 $(document).ready(function() {
-
-    // retrieving inputs
+    // retrieving inputs nodes:
     const word = $('#id_word'),
-          translation = $('#id_translation'),
-          sentence = $('#id_sentence'),
-          update_btn = $('#update_button');
+          updateBtn = $('#update_button');
+	  auth_token = $('#sl').attr('data-auth_token');
+
+    // after loading the form the "update" button is inactive
+    disableBtn(updateBtn);
+
+    // this is the text in word input after loading the page
+    const initialWord = word.val();
+
+    // when we change the word we make request to db if the user has record with this word
+	// if we have with this word then  the word is not "UNIQUE"
+	// and show correspoding alert('you already have this "word" in db')
+	// else we make "update" button enabled.
 
 
-    // by default, "update" button is inactive
-   disableBtn(update_btn);
 
-    // by default, all inputs in the form are not changed. This object is used to persist condition of three inputs:
-    // word, translation and sentence.
-   var changed_inputs ={ 'word': false, 'translation': false, 'sentence': false }
+    let typingTimer;                // Timer identifier
+    let doneTypingInterval = 1000;  // Time in ms (1 second)
+    let $input = $('#id_word');     // Input field
 
+    // On keyup, start the countdown
+    $input.on('keyup', function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
 
-   function assignInputListener(input_node, input_name) {
-        // retrieving default value of the input
-        const init_input_value = input_node.val();
+    // On keydown, clear the countdown 
+    $input.on('keydown', function () {
+        clearTimeout(typingTimer);
+    });
 
-        // assign listener on the input will trigger when something changes in the input
-        input_node.on( 'input', function() {
-
-            // retrieving the current value of the input
-            new_value =$(this).val();
-
-            // if the value of the input node is changed, it will update the condition of this input
-            if (new_value == init_input_value) {
-                changed_inputs[input_name] = false
-            } else {
-                changed_inputs[input_name] = true
-            }
-
-            // if, at least, one of the input states is changed the button becomes active
-            if (changed_inputs['word'] || changed_inputs['translation'] || changed_inputs['sentence']) {
-                enableBtn(update_btn);
-            } else {
-                disableBtn(update_btn);
-            }
-        });
-   }
-
-   assignInputListener(word, 'word');
-   assignInputListener(translation, 'translation');
-   assignInputListener(sentence, 'sentence');
+    // User is "finished typing," do something
+    function doneTyping () {
+        // Do something after user has stopped typing
+	const currentWord = $('#id_word').val(),
+	      authToken = $('#sl').attr('data-auth_token'),
+	      updateBtn = $('#update_button');
+        
+	    if (currentWord != '' && currentWord != initialWord) {
+		    $.ajax({
+      	    		url: `/api/words/?exact_word=${currentWord}`,
+      	    	    	type: 'GET',
+      	    	    	headers: {'Authorization': `Token ${authToken}`},
+      	    	    	success: function(data) {
+				if (data['count'] > 0) {
+					disableBtn(updateBtn);
+		    	    		 alert(`You have already added "${currentWord}" to your dictionary`);
+	        		} else { enableBtn(updateBtn); } 
+      	    	    	},
+      	    	    	error: function(xhr, status, error) {
+        			console.error(xhr.responseText);
+      	    	    	}
+    	    	    });
+           } else if (currentWord == initialWord)
+	    { enableBtn(updateBtn) } else { disableBtn(updateBtn) }
+    }
 });
+
+
