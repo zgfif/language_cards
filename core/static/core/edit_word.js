@@ -1,4 +1,4 @@
-
+// this function translates text and pastes result into "translation" input
 function translate_the_text(csrf_token, text, studying_lang='en') {
     $.ajax({
       url: '/translate',
@@ -37,11 +37,13 @@ function disableBtn(btn) {
 $(document).ready(function() {
     // retrieving inputs nodes:
     const word = $('#id_word'),
+	  translation = $('#id_translation'),
 	  sentence = $('#id_sentence'),
-          updateBtn = $('#update_button');
-	  csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+          updateBtn = $('#update_button'),
+	  csrfToken = $('input[name="csrfmiddlewaretoken"]').val(),
 	  studyingLangFull = $('#sl').attr('data-sl-full').toLowerCase();
-   
+  
+    
     // set placeholder depending from current studying language
     word.attr('placeholder', `to ${studyingLangFull}`);
     sentence.attr('placeholder', `example of sentence in ${studyingLangFull}`);
@@ -51,7 +53,13 @@ $(document).ready(function() {
     disableBtn(updateBtn);
 
     // this is the text in word input after loading the page
-    const initialWord = word.val();
+    const initialWord = word.val(),
+	  initialTranslation = translation.val(),
+	  initialSentence = sentence.val();
+
+    // todo: if we change "translation" or "sentence".
+    // than we validate "word" and if the word IS NOT "" and unique we activate button
+
 
     // when we change the word we make request to db if the user has record with this word
 	// if we have with this word then  the word is not "UNIQUE"
@@ -61,7 +69,7 @@ $(document).ready(function() {
 
     function validateUniquenessOfWord(btn, word='') {
 	authToken = $('#sl').attr('data-auth_token');
-	studyingLang = $('#sl').attr('data-sl-short');;
+	studyingLang = $('#sl').attr('data-sl-short');
 	
 	if (word != '') {
 		    $.ajax({
@@ -82,11 +90,10 @@ $(document).ready(function() {
       	    	    	}
     	    	    });
 
-
 	} else { console.log('no word to valiate uniqueness')}
-    }
+    };
 
-
+    // for "word" input
     let typingTimer;                // Timer identifier
     let doneTypingInterval = 1000;  // Time in ms (1 second)
     let $input = $('#id_word');     // Input field
@@ -102,13 +109,10 @@ $(document).ready(function() {
         clearTimeout(typingTimer);
     });
 
-
-
     // User is "finished typing," do something
     function doneTyping () {
         // Do something after user has stopped typing
-	const currentWord = $('#id_word').val(),
-	      updateBtn = $('#update_button');
+	const currentWord = $('#id_word').val();
 
 	if (currentWord == initialWord) {
 	    enableBtn(updateBtn);
@@ -117,8 +121,62 @@ $(document).ready(function() {
 	} else {
 	     validateUniquenessOfWord(updateBtn, currentWord);
 	}
-	
     }
+
+
+    // for "translation" input
+    let typingTimer1;                // Timer identifier
+    let doneTypingInterval1 = 1000;  // Time in ms (1 second)
+    let $input_translation = $('#id_translation');     // Input field
+
+    // On keyup, start the countdown
+    $input_translation.on('keyup', function () {
+        clearTimeout(typingTimer1);
+        typingTimer1 = setTimeout(doneTyping1, doneTypingInterval1);
+    });
+
+    // On keydown, clear the countdown 
+    $input_translation.on('keydown', function () {
+        clearTimeout(typingTimer1);
+    });
+
+    // User is "finished typing," do something
+    function doneTyping1 () {
+        // Do something after user has stopped typing
+	const currentTranslation = $('#id_translation').val();
+	      if (currentTranslation != initialTranslation) {
+		  enableBtn(updateBtn);
+	      }
+    };
+    
+
+    // for "sentence" input
+    let typingTimer2;                // Timer identifier
+    let doneTypingInterval2 = 1000;  // Time in ms (1 second)
+    let $input_sentence = $('#id_sentence');     // Input field
+
+    // On keyup, start the countdown
+    $input_sentence.on('keyup', function () {
+        clearTimeout(typingTimer2);
+        typingTimer2 = setTimeout(doneTyping2, doneTypingInterval2);
+    });
+
+    // On keydown, clear the countdown 
+    $input_sentence.on('keydown', function () {
+        clearTimeout(typingTimer2);
+    });
+
+    // User is "finished typing," do something
+    function doneTyping2 () {
+        // Do something after user has stopped typing
+	const currentSentence = $('#id_sentence').val();
+	      if (currentSentence != initialSentence) {
+		  enableBtn(updateBtn);
+	      }
+    };
+
+
+
 });
 
 
