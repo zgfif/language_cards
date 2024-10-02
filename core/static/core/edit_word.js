@@ -29,6 +29,29 @@ $(document).ready(function() {
 	// else we make "update" button enabled.
 
 
+    function validateUniquenessOfWord(btn, word='') {
+	authToken = $('#sl').attr('data-auth_token');
+
+	if (word != '') {
+		    $.ajax({
+      	    		url: `/api/words/?exact_word=${word}`,
+      	    	    	type: 'GET',
+      	    	    	headers: {'Authorization': `Token ${authToken}`},
+      	    	    	success: function(data) {
+				if (data['count'] > 0) {
+					disableBtn(updateBtn);
+		    	    		 alert(`You have already added "${word}" to your dictionary`);
+	        		} else { enableBtn(updateBtn); } 
+      	    	    	},
+      	    	    	error: function(xhr, status, error) {
+        			console.error(xhr.responseText);
+      	    	    	}
+    	    	    });
+
+
+	} else { console.log('no word to valiate uniqueness')}
+    }
+
 
     let typingTimer;                // Timer identifier
     let doneTypingInterval = 1000;  // Time in ms (1 second)
@@ -45,30 +68,22 @@ $(document).ready(function() {
         clearTimeout(typingTimer);
     });
 
+
+
     // User is "finished typing," do something
     function doneTyping () {
         // Do something after user has stopped typing
 	const currentWord = $('#id_word').val(),
-	      authToken = $('#sl').attr('data-auth_token'),
 	      updateBtn = $('#update_button');
-        
-	    if (currentWord != '' && currentWord != initialWord) {
-		    $.ajax({
-      	    		url: `/api/words/?exact_word=${currentWord}`,
-      	    	    	type: 'GET',
-      	    	    	headers: {'Authorization': `Token ${authToken}`},
-      	    	    	success: function(data) {
-				if (data['count'] > 0) {
-					disableBtn(updateBtn);
-		    	    		 alert(`You have already added "${currentWord}" to your dictionary`);
-	        		} else { enableBtn(updateBtn); } 
-      	    	    	},
-      	    	    	error: function(xhr, status, error) {
-        			console.error(xhr.responseText);
-      	    	    	}
-    	    	    });
-           } else if (currentWord == initialWord)
-	    { enableBtn(updateBtn) } else { disableBtn(updateBtn) }
+
+	if (currentWord == initialWord) {
+	    enableBtn(updateBtn);
+	} else if (currentWord == '') {
+	    disableBtn(updateBtn);
+	} else {
+	     validateUniquenessOfWord(updateBtn, currentWord);
+	}
+	
     }
 });
 
