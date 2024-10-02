@@ -200,14 +200,12 @@ class AddWordViewTests(TestCase):
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
-            'studying_lang_id': sl.id
         }
 
         u = User.objects.create_user(**credentials)
         u.profile.studying_lang = sl
         u.profile.save()
         self.client.login(**credentials)
-
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
         self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
@@ -254,7 +252,6 @@ class AddWordViewTests(TestCase):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
         
         sl = StudyingLanguage.objects.create(name='en') 
-        
         word_details = {
             'word': '',
             'translation': 'оспа',
@@ -262,13 +259,14 @@ class AddWordViewTests(TestCase):
         }
         u = User.objects.create_user(**credentials)
         u.profile.studying_lang = sl
-        u.save()
+        u.profile.save()
 
         self.client.login(**credentials)
         
         response = self.client.post('/add_word', word_details)
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
+
 
     def test_redirection_after_successful_adding_word(self):
         credentials = {'username': 'pasha', 'password': '1asdfX'}
@@ -293,6 +291,33 @@ class AddWordViewTests(TestCase):
 
         self.assertContains(response, text='successfully added', status_code=200)
         self.assertEqual(path, response.redirect_chain[-1][0])
+
+    def test_trying_to_add_duplicate_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+        
+        almost_the_same_word = {
+            'word': 'smallpox',
+            'translation': 'натуральная оспа',
+            'sentence': 'To Jenner\'s relief James did not catch smallpox.',
+        }
+
+        u = User.objects.create_user(**credentials)
+        u.profile.studying_lang = sl
+        u.profile.save()
+
+        self.client.login(**credentials)
+        
+        response = self.client.post('/add_word', word_details)
+        self.assertEqual(Word.objects.count(), 1)
+        response = self.client.post('/add_word', almost_the_same_word)
+        self.assertEqual(Word.objects.count(), 1)
 
 
 class WordListViewTests(TestCase):
@@ -965,6 +990,29 @@ class WordViewSetTests(TestCase):
         self.assertEqual(results['results'][0]['word'], 'smallpox')
         self.assertEqual(results['results'][1]['word'], 'canteen')
         self.assertEqual(results['results'][2]['word'], 'factory')
+    
+    def test_retrieving_exact_word_from_api_words(self):
+        pasha = User.objects.get(username="pasha")
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?exact_word=canteen', headers={'Authorization': 'Token ' + auth_token})
+
+        results = json.loads(response.content)
+        # we set studying_lang for pasha is English so only 3 words should be response
+        self.assertEqual(results['count'], 1)
+        self.assertEqual(results['next'], None)
+        self.assertEqual(results['results'][0]['word'], 'canteen')
+
+    def test_nothing_retrieving_via_exact_word(self):
+        pasha = User.objects.get(username="pasha")
+        auth_token = Token.objects.get(user_id=pasha.id).key
+
+        response = self.client.get('/api/words/?exact_word=can', headers={'Authorization': 'Token ' + auth_token})
+
+        results = json.loads(response.content)
+        # we set studying_lang for pasha is English so only 3 words should be response
+        self.assertEqual(results['count'], 0)
+        self.assertEqual(results['next'], None)
 
     def test_retrieving_filtered_words_from_api_words(self):
         pasha = User.objects.get(username="pasha")

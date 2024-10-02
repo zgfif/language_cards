@@ -18,7 +18,11 @@
         {% endif %}
 
         <form method="post"> {% csrf_token %}
-		<input type="hidden" id="sl" data-sl-full={{ sl_full }} data-sl-short={{ sl_short }}>
+		<!-- this hidden input is used only to sent specific data to add_word.js -->
+		<input type="hidden" id="sl" 
+			data-sl-full={{ sl_full }} 
+			data-sl-short={{ sl_short }} 
+			data-auth_token={{ auth_token }}>
                 
 		<div class="col cardRow">
                     {{ form.word.label }}
@@ -35,7 +39,7 @@
                     {{ form.sentence }}
                 </div>
 
-            <button type="submit" class="btn btn-primary" id="update_button">add</button>
+            <button type="submit" class="btn btn-primary" id="add_button">add</button>
         </form>
     </div>
 {% endblock content %}

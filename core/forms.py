@@ -76,17 +76,23 @@ class AddWordForm(forms.Form):
 
     def clean(self):
         word = self.cleaned_data.get('word')
+
         translation = self.cleaned_data.get('translation')
         if not word:
             raise forms.ValidationError('You have not entered any word!')
+        
         if word and not translation:
             raise forms.ValidationError(f'You have not added translation for {word}!')
 
+
     def save(self, request):
+        words = Word.objects.filter(word=self.cleaned_data.get('word'), added_by=request.user)
+        
         try:
-            sl = request.user.profile.studying_lang
-            word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
-            GenerateAudio(word, language=word.studying_lang.name).perform()
+            if words.count() == 0:
+                sl = request.user.profile.studying_lang
+                word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
+                GenerateAudio(word, language=word.studying_lang.name).perform()
 
         except:
             messages.error(request, 'Something went wrong!')

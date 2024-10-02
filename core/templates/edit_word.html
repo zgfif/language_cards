@@ -18,8 +18,13 @@
         {% endif %}
 
         <form method="post"> {% csrf_token %}
-		<input type="hidden" id="sl" data-sl-full={{ sl_full }} data-sl-short={{ sl_short }}>
-                
+		
+		<!-- this hidden input is used only to sent specific data to edit_word.js -->
+		<input type="hidden" id="sl" 
+			data-sl-full={{ sl_full }} 
+			data-sl-short={{ sl_short }} 
+			data-auth_token={{ auth_token }}>
+
 		<div class="col cardRow">
                     {{ form.word.label }}
                     {{ form.word }}
@@ -41,6 +46,6 @@
 {% endblock content %}
 
 {% block js %}
-    <script src="{% static 'core/add_word.js' %}"></script>
     <script src="{% static 'core/edit_word.js' %}"></script>
 {% endblock js %}
+
