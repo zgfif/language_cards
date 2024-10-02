@@ -1,3 +1,26 @@
+
+function translate_the_text(csrf_token, text, studying_lang='en') {
+    $.ajax({
+      url: '/translate',
+      type: 'POST',
+      headers: {'X-CSRFToken': csrf_token},
+      contentType: 'application/json',
+      data: JSON.stringify({source_lang: studying_lang, text: text}),
+      dataType: 'json',
+      success: function(data) {
+        // Handle the successful response here
+        const translation = data['translation'];
+        // if receive data set "translation" input of /add_word form
+        $('input[name="translation"]').val(translation);
+      },
+      error: function(xhr, status, error) {
+        // Handle errors here
+        console.error(xhr.responseText);
+      }
+    });
+}
+
+
 // this function makes the btn enabled
 function enableBtn(btn) {
    btn.attr('disabled', false);
@@ -14,8 +37,15 @@ function disableBtn(btn) {
 $(document).ready(function() {
     // retrieving inputs nodes:
     const word = $('#id_word'),
+	  sentence = $('#id_sentence'),
           updateBtn = $('#update_button');
-	  auth_token = $('#sl').attr('data-auth_token');
+	  csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+	  studyingLangFull = $('#sl').attr('data-sl-full').toLowerCase();
+   
+    // set placeholder depending from current studying language
+    word.attr('placeholder', `to ${studyingLangFull}`);
+    sentence.attr('placeholder', `example of sentence in ${studyingLangFull}`);
+    
 
     // after loading the form the "update" button is inactive
     disableBtn(updateBtn);
@@ -31,7 +61,8 @@ $(document).ready(function() {
 
     function validateUniquenessOfWord(btn, word='') {
 	authToken = $('#sl').attr('data-auth_token');
-
+	studyingLang = $('#sl').attr('data-sl-short');;
+	
 	if (word != '') {
 		    $.ajax({
       	    		url: `/api/words/?exact_word=${word}`,
@@ -41,7 +72,10 @@ $(document).ready(function() {
 				if (data['count'] > 0) {
 					disableBtn(updateBtn);
 		    	    		 alert(`You have already added "${word}" to your dictionary`);
-	        		} else { enableBtn(updateBtn); } 
+	        		} else { 
+					enableBtn(updateBtn);
+					translate_the_text(csrfToken, word, studyingLang);
+				} 
       	    	    	},
       	    	    	error: function(xhr, status, error) {
         			console.error(xhr.responseText);
