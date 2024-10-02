@@ -21,28 +21,51 @@ function translate_the_text(csrf_token, text, studying_lang='en') {
 }
 
 
-// this function makes the btn enabled
-function enableBtn(btn) {
-   btn.attr('disabled', false);
-};
 
+// this function is used to assign "finished typing" event listener 
+// on the input ("id_word", "id_translation" or "id_sentence")
+function assignFinishedTypingListener(callback, inputNode, doneTypingInterval=1000) {
+    const initialInputNodeValue = inputNode.val();
+    
+    let typingTimeout;
 
-// this function makes the btn disabled
-function disableBtn(btn) {
-    btn.attr('disabled', true);
-};
+    inputNode.on('keyup', function () {
+	clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(callback, doneTypingInterval);
+    });
+    
+
+    inputNode.on('keydown', function () {
+        clearTimeout(typingTimeout);
+    });
+}
 
 
 // assign event when the page is fully downloaded
 $(document).ready(function() {
+     
+    // this function makes the btn enabled
+    function enableUpdateBtn() {
+       $('#update_button').attr('disabled', false);
+    };
+
+
+    // this function makes the btn disabled
+    function disableUpdateBtn() {
+       $('#update_button').attr('disabled', true);
+    };
+
     // retrieving inputs nodes:
     const word = $('#id_word'),
 	  translation = $('#id_translation'),
 	  sentence = $('#id_sentence'),
-          updateBtn = $('#update_button'),
 	  csrfToken = $('input[name="csrfmiddlewaretoken"]').val(),
 	  studyingLangFull = $('#sl').attr('data-sl-full').toLowerCase();
-  
+ 
+
+    const initialWord = word.val(),
+	  initialTranslation = translation.val(),
+	  initialSentence = sentence.val();
     
     // set placeholder depending from current studying language
     word.attr('placeholder', `to ${studyingLangFull}`);
@@ -50,24 +73,10 @@ $(document).ready(function() {
     
 
     // after loading the form the "update" button is inactive
-    disableBtn(updateBtn);
-
-    // this is the text in word input after loading the page
-    const initialWord = word.val(),
-	  initialTranslation = translation.val(),
-	  initialSentence = sentence.val();
-
-    // todo: if we change "translation" or "sentence".
-    // than we validate "word" and if the word IS NOT "" and unique we activate button
+    disableUpdateBtn();
 
 
-    // when we change the word we make request to db if the user has record with this word
-	// if we have with this word then  the word is not "UNIQUE"
-	// and show correspoding alert('you already have this "word" in db')
-	// else we make "update" button enabled.
-
-
-    function validateUniquenessOfWord(btn, word='') {
+    function validateUniquenessOfWord(word='') {
 	authToken = $('#sl').attr('data-auth_token');
 	studyingLang = $('#sl').attr('data-sl-short');
 	
@@ -78,10 +87,10 @@ $(document).ready(function() {
       	    	    	headers: {'Authorization': `Token ${authToken}`},
       	    	    	success: function(data) {
 				if (data['count'] > 0) {
-					disableBtn(updateBtn);
+					disableUpdateBtn();
 		    	    		 alert(`You have already added "${word}" to your dictionary`);
 	        		} else { 
-					enableBtn(updateBtn);
+					enableUpdateBtn();
 					translate_the_text(csrfToken, word, studyingLang);
 				} 
       	    	    	},
@@ -93,90 +102,44 @@ $(document).ready(function() {
 	} else { console.log('no word to valiate uniqueness')}
     };
 
+
     // for "word" input
-    let typingTimer;                // Timer identifier
-    let doneTypingInterval = 1000;  // Time in ms (1 second)
-    let $input = $('#id_word');     // Input field
-
-    // On keyup, start the countdown
-    $input.on('keyup', function () {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(doneTyping, doneTypingInterval);
-    });
-
-    // On keydown, clear the countdown 
-    $input.on('keydown', function () {
-        clearTimeout(typingTimer);
-    });
-
-    // User is "finished typing," do something
-    function doneTyping () {
-        // Do something after user has stopped typing
+    function doneTypingWord() {
 	const currentWord = $('#id_word').val();
 
 	if (currentWord == initialWord) {
-	    enableBtn(updateBtn);
+	    enableUpdateBtn();
 	} else if (currentWord == '') {
-	    disableBtn(updateBtn);
+	    disableUpdateBtn();
 	} else {
-	     validateUniquenessOfWord(updateBtn, currentWord);
+	     validateUniquenessOfWord(currentWord);
 	}
-    }
+    };
 
 
     // for "translation" input
-    let typingTimer1;                // Timer identifier
-    let doneTypingInterval1 = 1000;  // Time in ms (1 second)
-    let $input_translation = $('#id_translation');     // Input field
-
-    // On keyup, start the countdown
-    $input_translation.on('keyup', function () {
-        clearTimeout(typingTimer1);
-        typingTimer1 = setTimeout(doneTyping1, doneTypingInterval1);
-    });
-
-    // On keydown, clear the countdown 
-    $input_translation.on('keydown', function () {
-        clearTimeout(typingTimer1);
-    });
-
-    // User is "finished typing," do something
-    function doneTyping1 () {
+    function doneTypingTranslation() {
         // Do something after user has stopped typing
 	const currentTranslation = $('#id_translation').val();
 	      if (currentTranslation != initialTranslation) {
-		  enableBtn(updateBtn);
+		  enableUpdateBtn();
 	      }
     };
     
 
     // for "sentence" input
-    let typingTimer2;                // Timer identifier
-    let doneTypingInterval2 = 1000;  // Time in ms (1 second)
-    let $input_sentence = $('#id_sentence');     // Input field
-
-    // On keyup, start the countdown
-    $input_sentence.on('keyup', function () {
-        clearTimeout(typingTimer2);
-        typingTimer2 = setTimeout(doneTyping2, doneTypingInterval2);
-    });
-
-    // On keydown, clear the countdown 
-    $input_sentence.on('keydown', function () {
-        clearTimeout(typingTimer2);
-    });
-
-    // User is "finished typing," do something
-    function doneTyping2 () {
+    function doneTypingSentence() {
         // Do something after user has stopped typing
 	const currentSentence = $('#id_sentence').val();
 	      if (currentSentence != initialSentence) {
-		  enableBtn(updateBtn);
+		  enableUpdateBtn();
 	      }
     };
+    
 
-
-
+    assignFinishedTypingListener(doneTypingWord, word);
+    assignFinishedTypingListener(doneTypingTranslation, translation);
+    assignFinishedTypingListener(doneTypingSentence, sentence);
 });
 
 
