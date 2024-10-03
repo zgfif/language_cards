@@ -3,9 +3,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
     const authorization_token = auth_token();
 
 
-    // make request on 'api/words' with Authorization Token to retrieve the list of words
-//    get_words_from_api(url = 'api/words', auth_token = authorization_token);
-
 
     // after clicking "delete" appears the confirmation dialog "Are you sure want to delete ...?"
     $(document).on('click', '.delWordBtn', function(event) {
@@ -20,7 +17,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     });
 
 
-    make_request_to_server_and_fill_table(url = 'api/words', auth_token = authorization_token);
+    make_request_to_server_and_fill_table(url = 'api/words', auth_token = authorization_token, is_cleared_table = true);
 
     searching(auth_token = authorization_token)
 });
@@ -42,18 +39,20 @@ function auth_token() {
 
 
 // this function appends a new row to table the row has 10 cells with data retrieved form results
-function fill_table_with_data(results = false) {
-    clear_table();
+function fill_table_with_data(results = false, is_cleared_table = true) {
+    if (is_cleared_table) {
+    	clear_table();
+    }
 
     if (results) {
         const table_body = document.getElementById("tableBody");
-
         if (table_body) {
            // we iterate over our the word's list [{'word': , 'translation':, 'sentence': ,..}, {}, ..., {}]
            for (let word of results) {
                 // add a new row in the end of existing table (this row will contain word, translation, sentence, etc)
                 let main_row = table_body.insertRow(-1);
-                    // inside the new word's row a new cell
+
+		    // inside the new word's row a new cell
                     first_cell = main_row.insertCell(0);
 
                     // as any cells haven't method "insertRow" we have to create a new "inner" table
@@ -109,10 +108,12 @@ function fill_table_with_data(results = false) {
                                       </ul>
                                     </div>`
 
-                    second_cell.setAttribute('style', 'vertical-align: middle')
+                    second_cell.setAttribute('style', 'vertical-align: middle');
+
             }
-        }
+        } 
     }
+    
 }
 
 
@@ -162,13 +163,17 @@ function clear_nothing_found_rows() {
 
 function toggle_next_button(next_url=false) {
     if (next_url) {
-        $('#moreWordsButton').attr("style", "display:block");
-
-        $('#moreWordsButton').click(function() {
-            get_words_from_api(url = next_url, auth_token = auth_token);
+	let is_cleared_table = false;
+	
+        //$('#moreWordsButton').attr("style", "display:block");
+        $('#moreWordsButton').show(500);
+        
+	$('#moreWordsButton').click(function() {
+            make_request_to_server_and_fill_table(url = next_url, auth_token = auth_token, is_cleared_table = is_cleared_table);
          });
     } else {
-        $('#moreWordsButton').attr("style", "display:none");
+        $('#moreWordsButton').hide(500);
+        //$('#moreWordsButton').attr("style", "display:none");
     }
 };
 
@@ -184,10 +189,10 @@ async function fetchData(url = 'api/words', auth_token = null) {
 }
 
 
-async function make_request_to_server_and_fill_table(url, auth_token) {
+async function make_request_to_server_and_fill_table(url, auth_token, is_cleared_table = true) {
     const data = await fetchData(url, auth_token);
 
-    fill_table_with_data(data['results']);
+    fill_table_with_data(data['results'], is_cleared_table = is_cleared_table);
 
     toggle_next_button(data['next']);
 }
@@ -205,7 +210,7 @@ function searching(auth_token = null) {
 
         if (!has_only_spaces(value)) {
             // making request to retrieve results of searching
-            make_request_to_server_and_fill_table(url = `/api/words/?q=${value}`, auth_token = auth_token)
+            make_request_to_server_and_fill_table(url = `/api/words/?q=${value}`, auth_token = auth_token, is_cleared_table = true)
 
             // we wait 200 milliseconds to count row results
            setTimeout(() => {
