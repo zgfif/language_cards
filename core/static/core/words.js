@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", (event) => {
     // assign the Authorization Token to variable for further use in "get_words_from_api" function
-    const authorization_token = auth_token();
+    const authorization_token = getAuthToken();
 
 
 
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
     make_request_to_server_and_fill_table(url = 'api/words', auth_token = authorization_token, is_cleared_table = true);
 
-    searching(auth_token = authorization_token)
+    enableSearching(auth_token = authorization_token)
 });
 
 
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
 // this function is used to retrieve Authorization token from element with 'data-auth-token' attribute
-function auth_token() {
+function getAuthToken() {
     const auth_node = document.querySelector('[data-auth-token]');
    if (auth_node) {
         return auth_node.getAttribute('data-auth-token');
@@ -165,15 +165,13 @@ function toggle_next_button(next_url=false) {
     if (next_url) {
 	let is_cleared_table = false;
 	
-        //$('#moreWordsButton').attr("style", "display:block");
         $('#moreWordsButton').show(500);
         
-	$('#moreWordsButton').click(function() {
+	$('#moreWordsButton').one('click', function() {
             make_request_to_server_and_fill_table(url = next_url, auth_token = auth_token, is_cleared_table = is_cleared_table);
-         });
+	});
     } else {
         $('#moreWordsButton').hide(500);
-        //$('#moreWordsButton').attr("style", "display:none");
     }
 };
 
@@ -198,8 +196,30 @@ async function make_request_to_server_and_fill_table(url, auth_token, is_cleared
 }
 
 // this function is used to enable searching
-function searching(auth_token = null) {
-    let timer = '';
+function enableSearching(auth_token = null) {
+    const searchInput = $('#searchInput');
+          timeoutInterval = 1000;
+    
+    let doneTyping;
+
+    searchInput.on('keydown', function () {
+        clearTimeout(doneTyping);
+    });
+
+
+    searchInput.on('keyup', function () {
+	clearTimeout(doneTyping);
+	doneTyping = setTimeout(callback, timeoutInterval);
+    });
+
+    function callback() {
+        let value = searchInput.val();
+        make_request_to_server_and_fill_table(url = `/api/words/?q=${value}`, 
+					      auth_token = auth_token, 
+		                              is_cleared_table = true);
+    }
+
+/*    let timer = '';
 
     // each time user presses any key in search input we make request to search by value of input
     $('#searchInput').keyup(function() {
@@ -222,7 +242,9 @@ function searching(auth_token = null) {
 
       }, 1000); // Waits for 1 second after last keyup to execute the above lines of code
     });
-}
+*/
+};
+
 
 // this function is used to add row with "Nothing found with ..." to table body
 function add_nothing_found_row(query = '', count = 0) {
@@ -230,4 +252,4 @@ function add_nothing_found_row(query = '', count = 0) {
         $("#tableBody").append(`<tr><td style="align-text:center">
         Nothing found with <b>"${query}"</b></td></tr>`);
     }
-}
+};
