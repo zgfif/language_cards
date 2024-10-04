@@ -1,8 +1,4 @@
 document.addEventListener("DOMContentLoaded", (event) => {
-    // assign the Authorization Token to variable for further use in "get_words_from_api" function
-    const authorization_token = auth_token();
-
-
 
     // after clicking "delete" appears the confirmation dialog "Are you sure want to delete ...?"
     $(document).on('click', '.delWordBtn', function(event) {
@@ -10,85 +6,99 @@ document.addEventListener("DOMContentLoaded", (event) => {
         return confirm(message);
     });
 
+
     // play audio pronunciation after clicking on "play" button
     $(document).on('click', '.playBtn', function(event) {
-        play_element = $(event.target.parentNode).find('.audioTag');
-        play_element[0].play();
+        playElement = $(event.target.parentNode).find('.audioTag');
+        playElement[0].play();
     });
 
 
-    make_request_to_server_and_fill_table(url = 'api/words', auth_token = authorization_token, is_cleared_table = true);
+    makeRequestToServerAndFillTable(url = 'api/words', 
+	                            authToken = getAuthToken(), 
+	                            performClearingTable = true);
 
-    searching(auth_token = authorization_token)
+
+    enableSearching(authToken = getAuthToken());
 });
 
 
-// declaration of functions is below
-
+// Declaration of functions is below:
 
 
 // this function is used to retrieve Authorization token from element with 'data-auth-token' attribute
-function auth_token() {
-    const auth_node = document.querySelector('[data-auth-token]');
-   if (auth_node) {
-        return auth_node.getAttribute('data-auth-token');
-   } else {
-        return null
-   }
-}
+function getAuthToken() {
+    const authNode = document.querySelector('[data-auth-token]');
+    if (authNode) {
+        return authNode.getAttribute('data-auth-token');
+    } else {
+        return null;
+    }
+};
 
 
 // this function appends a new row to table the row has 10 cells with data retrieved form results
-function fill_table_with_data(results = false, is_cleared_table = true) {
-    if (is_cleared_table) {
-    	clear_table();
+function fillTableWithData(results = false, performClearingTable = true) {
+    if (performClearingTable) { 
+        clearTable(); 
     }
 
     if (results) {
-        const table_body = document.getElementById("tableBody");
-        if (table_body) {
+
+        const tableBody = document.getElementById("tableBody");
+        
+	if (tableBody) {
            // we iterate over our the word's list [{'word': , 'translation':, 'sentence': ,..}, {}, ..., {}]
            for (let word of results) {
                 // add a new row in the end of existing table (this row will contain word, translation, sentence, etc)
-                let main_row = table_body.insertRow(-1);
+                let mainRow = tableBody.insertRow(-1);
 
 		    // inside the new word's row a new cell
-                    first_cell = main_row.insertCell(0);
+                    firstCell = mainRow.insertCell(0);
 
                     // as any cells haven't method "insertRow" we have to create a new "inner" table
-                    inner_table = document.createElement('table');
+                    innerTable = document.createElement('table');
 
                     // insert "inner" table into "main" cell
-                    first_cell.appendChild(inner_table);
+                    firstCell.appendChild(innerTable);
 
                     // insert 3 rows into the "inner" table
-                    inner_row1 = inner_table.insertRow(0) // row for "word", audio tag and badge (two rectangles)
-                    inner_row2 = inner_table.insertRow(1) // row for "translation"
-                    inner_row3 = inner_table.insertRow(2) // row for "sentence"
+                    innerRow1 = innerTable.insertRow(0) // row for "word", audio tag and badge (two rectangles)
+                    innerRow2 = innerTable.insertRow(1) // row for "translation"
+                    innerRow3 = innerTable.insertRow(2) // row for "sentence"
 
                     // row contains 'cat', 'cat' audio tag and two "progress" rectangles
                     // (depends on boolean ru_en and en_ru) "green" is true, "white" is false
-                    inner_row1.innerHTML = `<div class="word_and_audio_div">
-                                                <img class="playBtn" src="/static/core/images/play.svg" height="20px" alt="play button">
-                                                ${image_badge_tag(know_native_to_studying = word['know_native_to_studying'], know_studying_to_native = word['know_studying_to_native'])}
+                    innerRow1.innerHTML = `<div class="word_and_audio_div">
+                                                <img class="playBtn" 
+						     src="/static/core/images/play.svg" 
+						     height="20px" alt="play button">
+                                                ${imageBadgeTag(knowNativeToStudying = word['know_native_to_studying'], 
+						                knowStudyingToNative = word['know_studying_to_native'])}
                                                 <b style="padding-right:15px;">${word['word']}</b>
-                                                <audio class="audioTag" style="padding-right:15px;" controls src="${word['full_audio_path']}" hidden></audio>
+                                                
+						<audio class="audioTag" 
+						       style="padding-right:15px;" 
+						       controls 
+						       src="${word['full_audio_path']}" 
+						       hidden>
+						</audio>
                                             </div>`;
 
                     // "кошка" translation
-                    inner_row2.innerHTML = word['translation'];
+                    innerRow2.innerHTML = word['translation'];
 
                     // sentence, for example: "It's very difficult to find black cat in black room."
-                    inner_row3.innerHTML =  word['sentence'];
+                    innerRow3.innerHTML =  word['sentence'];
 
                     // add new cell to "main" row for dropdown menu (three dots sign)
-                    second_cell = main_row.insertCell(1)
+                    secondCell = mainRow.insertCell(1)
 
                     // this "second" cell in the "main" row contains menu:
                     // 1 menu item: update
                     // 2 menu item: reset progress (make en_ru false, and ru_en false again)
                     // 3 menu item: delete word from user's vocabulary
-                    second_cell.innerHTML = `
+                    secondCell.innerHTML = `
                                     <div class="dropdown">
                                       <img src="/static/core/images/three_v_dots.svg" class="dropdown-toggle"
                                             data-bs-toggle="dropdown" aria-expanded="true" alt="three_dots"
@@ -108,7 +118,7 @@ function fill_table_with_data(results = false, is_cleared_table = true) {
                                       </ul>
                                     </div>`
 
-                    second_cell.setAttribute('style', 'vertical-align: middle');
+                    secondCell.setAttribute('style', 'vertical-align: middle');
 
             }
         } 
@@ -119,35 +129,35 @@ function fill_table_with_data(results = false, is_cleared_table = true) {
 
 // this function builds the image tag whose image name depending on boolean values of "en_ru" and "ru_en"
 // example of return: <img src="/static/core/images/false_true.svg" alt="progress" style="height:20px">
-function image_badge_tag(know_native_to_studying = false, know_studying_to_native = false) {
-    let img_name = 'false_false.svg';
+function imageBadgeTag(knowNativeToStudying = false, knowStudyingToNative = false) {
+    let imgName = 'false_false.svg';
 
-    if (know_native_to_studying && know_studying_to_native) {
-        img_name = 'true_true.svg';
-    } else if (know_native_to_studying && !know_studying_to_native) {
-        img_name = 'true_false.svg';
-    } else if (!know_native_to_studying && know_studying_to_native) {
-        img_name = 'false_true.svg';
+    if (knowNativeToStudying && knowStudyingToNative) {
+        imgName = 'true_true.svg';
+    } else if (knowNativeToStudying && !knowStudyingToNative) {
+        imgName = 'true_false.svg';
+    } else if (!knowNativeToStudying && knowStudyingToNative) {
+        imgName = 'false_true.svg';
     }
 
-    return `<img src="/static/core/images/${img_name}" alt="progress" style="margin: 0 10px;height:20px">`
+    return `<img src="/static/core/images/${imgName}" alt="progress" style="margin: 0 10px;height:20px">`
 }
 
 
 // this function removes all rows from table
-function clear_table() {
+function clearTable() {
     $('#tableBody').children('tr').remove();
 }
 
 
 // this function validates if string has only spaces without any other symbols
-function has_only_spaces(str = "") {
+function hasOnlySpaces(str = "") {
    let result = false
 
    if (str.length > 0) {
-        const str_without_spaces = str.replace(/\s+/g, '');
+        const strWithoutSpaces = str.replace(/\s+/g, '');
 
-        if (str_without_spaces.length == 0) { result = true }
+        if (strWithoutSpaces.length == 0) { result = true }
    }
 
    return result
@@ -155,31 +165,31 @@ function has_only_spaces(str = "") {
 
 
 // before showing results we should clear nothing found rows
-function clear_nothing_found_rows() {
+function clearNothingFoundRows() {
     document.querySelectorAll(".noResultsBody").forEach((element) => element.remove());
 
 }
 
 
-function toggle_next_button(next_url=false) {
-    if (next_url) {
-	let is_cleared_table = false;
-	
-        //$('#moreWordsButton').attr("style", "display:block");
-        $('#moreWordsButton').show(500);
-        
-	$('#moreWordsButton').click(function() {
-            make_request_to_server_and_fill_table(url = next_url, auth_token = auth_token, is_cleared_table = is_cleared_table);
-         });
-    } else {
-        $('#moreWordsButton').hide(500);
-        //$('#moreWordsButton').attr("style", "display:none");
-    }
+function toggleMoreButton(nextUrl=false) {
+    $('#moreWordsButton').remove();
+
+    if (nextUrl) {
+	const clearTable = false;
+        //  if we have nextUrl we create "more" button 
+        $('#moreWordsDiv').append('<button class="btn" type="button" id="moreWordsButton">more</button>');
+        // attach on this button eventlistener to load more words
+	$('#moreWordsButton').one('click', function() {
+            makeRequestToServerAndFillTable(url = nextUrl, 
+		                            authToken = authToken, 
+		                            performClearingTable = clearTable);
+	});
+    } 
 };
 
 
-async function fetchData(url = 'api/words', auth_token = null) {
-    const headers = new Headers({ 'Authorization': `Token ${auth_token}`, });
+async function fetchData(url = 'api/words', authToken = null) {
+    const headers = new Headers({ 'Authorization': `Token ${authToken}`, });
 
     const response = await fetch(url, { headers: headers });
 
@@ -189,45 +199,38 @@ async function fetchData(url = 'api/words', auth_token = null) {
 }
 
 
-async function make_request_to_server_and_fill_table(url, auth_token, is_cleared_table = true) {
-    const data = await fetchData(url, auth_token);
+async function makeRequestToServerAndFillTable(url, authToken, performClearingTable = true) {
+    const data = await fetchData(url, authToken);
 
-    fill_table_with_data(data['results'], is_cleared_table = is_cleared_table);
+    fillTableWithData(data['results'], performClearingTable = performClearingTable);
 
-    toggle_next_button(data['next']);
+    toggleMoreButton(data['next']);
 }
 
 // this function is used to enable searching
-function searching(auth_token = null) {
-    let timer = '';
+function enableSearching(authToken = null) {
+    const searchInput = $('#searchInput'),
+          timeoutInterval = 1000;
+    
+    let doneTyping;
 
-    // each time user presses any key in search input we make request to search by value of input
-    $('#searchInput').keyup(function() {
-      clearTimeout(timer);
-
-      timer = setTimeout(function() {
-        let value = $('#searchInput').val()
-
-        if (!has_only_spaces(value)) {
-            // making request to retrieve results of searching
-            make_request_to_server_and_fill_table(url = `/api/words/?q=${value}`, auth_token = auth_token, is_cleared_table = true)
-
-            // we wait 200 milliseconds to count row results
-           setTimeout(() => {
-                 // count founded words
-                let count_of_rows = $("#tableBody > tr").length;
-                add_nothing_found_row(value, count_of_rows);
-           }, 200);
-        }
-
-      }, 1000); // Waits for 1 second after last keyup to execute the above lines of code
+    searchInput.on('keydown', function () {
+        clearTimeout(doneTyping);
     });
-}
 
-// this function is used to add row with "Nothing found with ..." to table body
-function add_nothing_found_row(query = '', count = 0) {
-    if (count == 0) {
-        $("#tableBody").append(`<tr><td style="align-text:center">
-        Nothing found with <b>"${query}"</b></td></tr>`);
+
+    searchInput.on('keyup', function () {
+	clearTimeout(doneTyping);
+	doneTyping = setTimeout(callback, timeoutInterval);
+    });
+
+    function callback() {
+        let value = searchInput.val();
+        makeRequestToServerAndFillTable(url = `/api/words/?q=${value}`, 
+					      authToken = authToken, 
+		                              performClearingTable = true);
     }
-}
+};
+
+
+
