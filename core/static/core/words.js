@@ -172,6 +172,8 @@ function clearNothingFoundRows() {
 
 
 function toggleMoreButton(nextUrl=false) {
+    $('#moreWordsButton').remove();
+
     if (nextUrl) {
 	const clearTable = false;
         //  if we have nextUrl we create "more" button 
@@ -182,9 +184,7 @@ function toggleMoreButton(nextUrl=false) {
 		                            authToken = authToken, 
 		                            performClearingTable = clearTable);
 	});
-    } else {
-        $('#moreWordsButton').remove();
-    }
+    } 
 };
 
 
