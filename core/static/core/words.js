@@ -173,17 +173,17 @@ function clearNothingFoundRows() {
 
 function toggleMoreButton(nextUrl=false) {
     if (nextUrl) {
-	let performClearingTable = false;
-	
-        $('#moreWordsButton').show(500);
-        
+	const clearTable = false;
+        //  if we have nextUrl we create "more" button 
+        $('#moreWordsDiv').append('<button class="btn" type="button" id="moreWordsButton">more</button>');
+        // attach on this button eventlistener to load more words
 	$('#moreWordsButton').one('click', function() {
             makeRequestToServerAndFillTable(url = nextUrl, 
 		                            authToken = authToken, 
-		                            performClearingTable = performClearingTable);
+		                            performClearingTable = clearTable);
 	});
     } else {
-        $('#moreWordsButton').hide(500);
+        $('#moreWordsButton').remove();
     }
 };
 
