@@ -78,13 +78,15 @@ class Word(models.Model):
     def full_audio_word_path(self):
         is_local = False if settings.SAVE_MEDIA_ON_GSC else True
         gtts = GttsAudio.objects.filter(word=self, use='word').last()
-        return AudioFilePath(gtts).retrieve(is_local)
+        if gtts:
+            return AudioFilePath(gtts.audio_name).retrieve(is_local)
     
     @property
     def full_audio_sentence_path(self):
         is_local = False if settings.SAVE_MEDIA_ON_GSC else True
         gtts = GttsAudio.objects.filter(word=self, use='sentence').last()
-        return AudioFilePath(gtts).retrieve(is_local)
+        if gtts:
+            return AudioFilePath(gtts.audio_name).retrieve(is_local)
 
 
 class Profile(models.Model):
