@@ -1,3 +1,4 @@
+import time
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
@@ -87,12 +88,11 @@ class AddWordForm(forms.Form):
 
     def save(self, request):
         words = Word.objects.filter(word=self.cleaned_data.get('word'), added_by=request.user)
-        
         try:
             if words.count() == 0:
                 sl = request.user.profile.studying_lang
-                word = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
-                GenerateAudio(word, language=word.studying_lang.name).perform()
+                w = Word.objects.create(added_by=request.user, studying_lang=sl, **self.cleaned_data)
+                GenerateAudio(word=w).perform()
 
         except:
             messages.error(request, 'Something went wrong!')
