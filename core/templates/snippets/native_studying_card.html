@@ -1,23 +1,28 @@
+<!-- we load this for working 'full_audio_word_path' -->
+{% load full_audio_path_tag %}
+
+
 <div id="card" class="block">
-    <!--    word in RU-->
+    <!--    word in native_language(ru)-->
     <div id="word" class="cardRow">
             <h1><span>{{ word.translation }}</span></h1>
     </div>
 
-    <!--    word in EN-->
+    <!--    word in studying_language(bulgarian or english)-->
     <div id="translated" class="hiddenDiv cardRow">
             <span>{{ word.word }}</span>
     </div>
 
-    <!--    audio track-->
+    <!--    audio track to listen the word in studying_language -->
     <div id="en_audio" class="hiddenDiv cardRow">
-        {% load full_audio_path_tag %}
-        <audio controls src="{% full_path word %}"></audio>
+        <audio controls src="{% full_audio_word_path word %}"></audio>
     </div>
 
     <!--    sentence example-->
     <div id="sentence" class="hiddenDiv cardRow">
-        <span>{{ word.sentence }}</span>
+	<!-- the included snippet contains play button and audio tag to listen the sentence -->
+	{% include 'snippets/play_sentence.html' %}
+	<span>{{ word.sentence }}</span>
     </div>
 
     <!--    input field-->
@@ -43,3 +48,4 @@
 
     <div id="wordResult" class="redText"></div>
 </div>
+

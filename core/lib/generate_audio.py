@@ -8,25 +8,29 @@ from core.models import GttsAudio, Word
 class GenerateAudio:
     TYPE_OF_FILE = 'mp3'  # by default, type is '.mp3'
 
-   # should be 'en' or 'bg'
-    def __init__(self, word, language='en'):
-        if isinstance(word, Word):
-            self.word = word
-            if isinstance(word.word, str) and len(word.word) > 0:
-                self.text = word.word
-        else:
-            raise AttributeError('argument must be instance of Word')
-        if isinstance(language, str):
-            self.language = language 
-        else:
-            raise AttributeError('language must be string')
+    # the lang should be 'en' or 'bg'
+    def __init__(self, word):
+        self.word = word
+
 
     def perform(self):
-        if self.text:
-            # generates mp3 file which contains the text
-            tts = gTTS(text=self.text, lang=self.language)
+        if not isinstance(self.word, Word):
+            return None
 
-            # Create a temporary file
+        # if we have a studying word we will create an audition for this word.
+        if self.word.word:
+            self.bind_audition_to_word(text=self.word.word, use='word')
+        
+        # if we have a sentence we will create an audition for this sentence.
+        if self.word.sentence:
+            self.bind_audition_to_word(text=self.word.sentence, use='sentence')
+    
+
+    def bind_audition_to_word(self, text, use):
+            # generate mp3 audition file for certain text
+            tts = gTTS(text=text, lang=self.word.studying_lang.name)
+
+            # Create a temporary file and save it as new record as GttsAudio model
             with tempfile.NamedTemporaryFile(suffix=f'.{self.TYPE_OF_FILE}', delete=False) as temp_audio_file:
                 tts.save(temp_audio_file.name)
 
@@ -35,18 +39,15 @@ class GenerateAudio:
                 audio_content = temp_audio_file.read()
 
                 # save generated audio to media
-                self.save_audio(audio_content)
-        else:
-            return None
+                audio_content = ContentFile(audio_content, name=f'{self.generate_uuid()}.mp3')
+                
+                GttsAudio.objects.create(audio_name=audio_content, word=self.word, use=use)
 
-    def save_audio(self, audio_content=None):
-        if audio_content:
-            content_file = ContentFile(audio_content, name=f'{self.generate_uuid()}.mp3')
-            # initialize GttsAudio model with file and reference to word
-            ga = GttsAudio(word=self.word, audio_name=content_file)
-            ga.save()
 
     # each audio file should have unique name
     @staticmethod
     def generate_uuid():
         return uuid.uuid4()
+
+
+

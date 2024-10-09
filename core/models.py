@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
-
 from core.lib.audio_file_path import AudioFilePath
 from core.lib.remove_file import RemoveFile
 from core.lib.remove_from_gcs import RemoveFromGcs
@@ -59,17 +58,35 @@ class Word(models.Model):
         return self.know_native_to_studying and self.know_studying_to_native
 
     @property
-    def audio_name(self):
-        audios = GttsAudio.objects.filter(word=self)
+    def audio_word_name(self):
+        audios = GttsAudio.objects.filter(word=self, use='word')
         if audios:
             return audios.last().audio_name
         else:
             return None
 
     @property
-    def full_audio_path(self):
+    def audio_sentence_name(self):
+        audios = GttsAudio.objects.filter(word=self, use='sentence')
+        
+        if audios:
+            return audios.last().audio_name
+        else:
+            return None
+
+    @property
+    def full_audio_word_path(self):
         is_local = False if settings.SAVE_MEDIA_ON_GSC else True
-        return AudioFilePath(self).retrieve(is_local)
+        gtts = GttsAudio.objects.filter(word=self, use='word').last()
+        if gtts:
+            return AudioFilePath(gtts.audio_name).retrieve(is_local)
+    
+    @property
+    def full_audio_sentence_path(self):
+        is_local = False if settings.SAVE_MEDIA_ON_GSC else True
+        gtts = GttsAudio.objects.filter(word=self, use='sentence').last()
+        if gtts:
+            return AudioFilePath(gtts.audio_name).retrieve(is_local)
 
 
 class Profile(models.Model):
@@ -100,11 +117,14 @@ class MyUser(User):
 
 
 class GttsAudio(models.Model):
+    USE_CHOICES = [('word', 'for_word'), ('sentence', 'for_sentence')]
+
     audio_name = models.FileField(upload_to='my_files/', blank=True)
     word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    use = models.CharField(max_length=255, choices=USE_CHOICES)
 
     def __str__(self):
-        return str(self.audio_name)
+        return str(f'{self.audio_name}')
 
 
 @receiver(post_delete, sender=GttsAudio)
@@ -127,4 +147,5 @@ def create_profile_for_user(sender, instance=None, created=False, **kwargs):
     # as soon as we create a new user we also create a new profile for him
     if created:
         Profile.objects.create(user=instance)
+
 

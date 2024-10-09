@@ -2,7 +2,7 @@ import json
 
 from django.core.exceptions import ValidationError
 from django.utils.timezone import localtime
-
+from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -14,6 +14,7 @@ from core.lib.remove_from_gcs import RemoveFromGcs
 from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
 from core.lib.translate_text import TranslateText
 from core.lib.next_list_item import NextListItem
+from core.lib.generate_audio import GenerateAudio
 
 
 class IndexViewTests(TestCase):
@@ -206,6 +207,7 @@ class AddWordViewTests(TestCase):
         u.profile.studying_lang = sl
         u.profile.save()
         self.client.login(**credentials)
+        
         response = self.client.post('/add_word', word_details, follow=True)
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
         self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
@@ -318,6 +320,52 @@ class AddWordViewTests(TestCase):
         self.assertEqual(Word.objects.count(), 1)
         response = self.client.post('/add_word', almost_the_same_word)
         self.assertEqual(Word.objects.count(), 1)
+
+    def test_having_related_two_audio_files_to_added_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
+        word_details = {
+            'word': 'against',
+            'translation': 'против',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        u = User.objects.create_user(**credentials)
+        
+        u.profile.studying_lang = sl
+        u.profile.save()
+
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        word = Word.objects.last()
+        self.assertEqual(word.word, 'against')
+        self.assertEqual(GttsAudio.objects.filter(word=word).count(), 2)
+    
+    def test_having_related_one_audio_file_to_added_word(self):
+        credentials = {'username': 'pasha', 'password': '1asdfX'}
+        
+        sl = StudyingLanguage.objects.create(name='en') 
+        
+        word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа'
+        }
+
+        u = User.objects.create_user(**credentials)
+        
+        u.profile.studying_lang = sl
+        u.profile.save()
+
+        self.client.login(**credentials)
+
+        response = self.client.post('/add_word', word_details, follow=True)
+        word = Word.objects.last()
+        self.assertEqual(word.word, 'smallpox')
+        self.assertEqual(GttsAudio.objects.filter(word=word).count(), 1)
+
 
 
 class WordListViewTests(TestCase):
@@ -719,7 +767,7 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(pasha.unknown_words.count(), 2)
 
 
-class ResetProgress(TestCase):
+class ResetProgressTests(TestCase):
     def test_do_not_rest_progress(self):
         smallpox = {
             'word': 'smallpox',
@@ -1165,7 +1213,7 @@ class WordViewSetTests(TestCase):
         self.assertEqual(results['next'], None)
         self.assertEqual(results['results'], [])
 
-class StudyingLanguageTest(TestCase):
+class StudyingLanguageTests(TestCase):
     def test_successful_creating_language(self):
         self.assertEqual(StudyingLanguage.objects.count(), 0)
         StudyingLanguage.objects.create(name='en')
@@ -1189,7 +1237,7 @@ class StudyingLanguageTest(TestCase):
             obj.full_clean()
 
 
-class ProfileTest(TestCase):
+class ProfileTests(TestCase):
     def test_if_a_new_user_has_profile(self):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
         
@@ -1229,7 +1277,7 @@ class ProfileTest(TestCase):
         self.assertEqual(pasha.profile.studying_lang.name, 'en')
 
 
-class ToggleStudyingLanguageTest(TestCase):
+class ToggleStudyingLanguageTests(TestCase):
     def test_change_studying_language_for_user(self):
         en = StudyingLanguage.objects.create(name='en')
         bg = StudyingLanguage.objects.create(name='bg')
@@ -1340,4 +1388,42 @@ class TranslateWorldApiTests(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['translation'], '') 
-    
+
+
+class GenerateAudioTests(TestCase):
+    def test_use_invalid_argument_generating_audio(self):
+        GenerateAudio(word='sample text').perform()
+        self.assertEqual(GttsAudio.objects.count(), 0)
+
+
+    def test_generating_audios_for_word(self):         
+        user = User.objects.create(username='pasha', email='mail@example.com')
+
+        sl = StudyingLanguage.objects.create(name='en')
+        word_details = {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'The children were all vaccinated against smallpox.',
+            }
+
+        word = Word.objects.create(added_by=user, studying_lang=sl, **word_details)
+        GenerateAudio(word=word).perform()
+        self.assertEqual(GttsAudio.objects.count(), 2)
+        word.delete()
+
+
+    def test_generating_only_one_audio_for_word(self):         
+        user = User.objects.create(username='pasha', email='mail@example.com')
+
+        sl = StudyingLanguage.objects.create(name='en')
+        word_details = {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': ''
+            }
+
+        word = Word.objects.create(added_by=user, studying_lang=sl, **word_details)
+        GenerateAudio(word=word).perform()
+        self.assertEqual(GttsAudio.objects.count(), 1)
+        word.delete()
+

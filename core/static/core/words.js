@@ -7,12 +7,18 @@ document.addEventListener("DOMContentLoaded", (event) => {
     });
 
 
-    // play audio pronunciation after clicking on "play" button
+    // play audio word pronunciation after clicking on "play" button
     $(document).on('click', '.playBtn', function(event) {
         playElement = $(event.target.parentNode).find('.audioTag');
         playElement[0].play();
     });
 
+    // play audio sentence pronunciation after clicking on "play" button
+    $(document).on('click', '.playBtnSentence', function(event) {
+        playElement = $(event.target.parentNode).find('.audioTag');
+	console.log(playElement);
+        playElement[0].play();
+    });
 
     makeRequestToServerAndFillTable(url = 'api/words', 
 	                            authToken = getAuthToken(), 
@@ -80,7 +86,7 @@ function fillTableWithData(results = false, performClearingTable = true) {
 						<audio class="audioTag" 
 						       style="padding-right:15px;" 
 						       controls 
-						       src="${word['full_audio_path']}" 
+						       src="${word['full_audio_word_path']}" 
 						       hidden>
 						</audio>
                                             </div>`;
@@ -89,7 +95,23 @@ function fillTableWithData(results = false, performClearingTable = true) {
                     innerRow2.innerHTML = word['translation'];
 
                     // sentence, for example: "It's very difficult to find black cat in black room."
-                    innerRow3.innerHTML =  word['sentence'];
+		    if (word['full_audio_sentence_path']) {
+                    	innerRow3.innerHTML = `<span><img class="playBtnSentence" 
+						     src="/static/core/images/play.svg" 
+						     height="20px" alt="play button">
+						     ${word['sentence']}
+						     <audio class="audioTag" 
+						           style="padding-right:15px;" 
+						           controls 
+						           src="${word['full_audio_sentence_path']}" hidden>
+						     </audio>
+				    		</span>
+						
+				    `;
+
+		    } else {
+                    	innerRow3.innerHTML =  word['sentence'];
+		    }
 
                     // add new cell to "main" row for dropdown menu (three dots sign)
                     secondCell = mainRow.insertCell(1)

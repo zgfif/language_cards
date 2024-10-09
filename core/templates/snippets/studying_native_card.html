@@ -1,3 +1,6 @@
+<!-- we load this for working "full_audio_word_path" template tag -->
+{% load full_audio_path_tag %}
+
 <div id="card" class="block">
     <div id="word" class="cardRow">
         <h1><span>{{ word.word }}</span></h1>
@@ -8,11 +11,12 @@
     </div>
 
     <div  class="cardRow">
-        {% load full_audio_path_tag %}
-        <audio id="enAudio" controls src="{% full_path word %}"></audio>
+        <audio id="enAudio" controls src="{% full_audio_word_path word %}"></audio>
     </div>
 
     <div id="sentence" class="hiddenDiv cardRow">
+	<!-- the included snippet contains play button and audio tag to listen the sentence -->
+	{% include 'snippets/play_sentence.html' %}        
         <span>{{ word.sentence }}</span>
     </div>
 
@@ -36,3 +40,7 @@
 
     <div id="wordResult" class="cardRow"></div>
 </div>
+
+
+
+
