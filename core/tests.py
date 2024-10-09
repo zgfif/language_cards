@@ -1391,6 +1391,11 @@ class TranslateWorldApiTests(TestCase):
 
 
 class GenerateAudioTests(TestCase):
+    def test_use_invalid_argument_generating_audio(self):
+        GenerateAudio(word='sample text').perform()
+        self.assertEqual(GttsAudio.objects.count(), 0)
+
+
     def test_generating_audios_for_word(self):         
         user = User.objects.create(username='pasha', email='mail@example.com')
 
