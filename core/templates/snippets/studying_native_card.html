@@ -1,5 +1,5 @@
+<!-- we load this for working "full_audio_word_path" template tag -->
 {% load full_audio_path_tag %}
-{% load static %}
 
 <div id="card" class="block">
     <div id="word" class="cardRow">
@@ -15,20 +15,9 @@
     </div>
 
     <div id="sentence" class="hiddenDiv cardRow">
-	    <!-- this is the hidden audio tag which start playing audio 
-		    after clicking on image with id "playBtnSentence" -->
-        <audio id="sentenceAudio" 
-	       controls 
-	       src="{% full_audio_sentence_path word %}" hidden>
-	</audio>
-	    <!-- this image is used as clicking button to play the "sentence" audio -->
-	<img id="playBtnSentence"
-             src="/static/core/images/play.svg" 
-	     height="20px" 
-	     alt="play button">
-        <span>
-            {{ word.sentence }}
-        </span>
+	<!-- the included snippet contains play button and audio tag to listen the sentence -->
+	{% include 'snippets/play_sentence.html' %}        
+        <span>{{ word.sentence }}</span>
     </div>
 
     <div class="cardRow">
@@ -53,8 +42,5 @@
 </div>
 
 
-{% block js %}
-    <script src="{% static 'core/js/native_studying_card.js' %}"></script>
-{% endblock %}
 
 

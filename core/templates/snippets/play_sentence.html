@@ -1,0 +1,14 @@
+{% load static %}
+<!-- we load 'full_audio_path_tag' for working 'full_audio_sentence_path' template tag -->
+{% load full_audio_path_tag %}
+
+<!-- this is the hidden audio tag which start playing audio 
+after clicking on image with id "playBtnSentence" -->
+<audio id="sentenceAudio" controls src="{% full_audio_sentence_path word %}" hidden></audio>
+	    <!-- this image is used as clicking button to play the "sentence" audio -->
+<img id="playBtnSentence" src="/static/core/images/play.svg" height="20px" alt="play button">
+
+
+{% block js %}
+    <script src="{% static 'core/js/play_sentence.js' %}"></script>
+{% endblock %}
