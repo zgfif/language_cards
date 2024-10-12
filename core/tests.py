@@ -565,54 +565,152 @@ class LearningPageViewTests(TestCase):
         self.assertContains(response, status_code=200, text='something went wrong')
         self.assertEqual(Word.objects.all().count(), 1)
 
-    def test_show_edit_page(self):
-        smallpox = {
+
+class EditWordViewTests(TestCase):
+    # before performing each test in this test case we should have an existing user 
+    # and the word and we also login
+    def setUp(self):
+        word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
 
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        pasha = User.objects.create_user(**credentials1)
-
-        sl = StudyingLanguage.objects.create(name='en')
+        user_credentials = {
+            'username': 'pasha', 
+            'password': '1asdfX', 
+            'email': 'pasha@gmail.com'
+        }
         
-        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
+        # creating a user
+        user = User.objects.create_user(**user_credentials)
+        
+        # creating a "studying language"
+        studying_lang = StudyingLanguage.objects.create(name='en')
+        
+        # binding "studying language" to profile
+        user.profile.studying_lang = studying_lang
+        user.profile.save()
 
-        self.client.login(username=credentials1['username'], password=credentials1['password'])
+        # creating a word which will be tested as the updating target
+        self.word = Word.objects.create(**word_details, added_by=user, studying_lang=studying_lang)
+        
+        self.client.login(username=user_credentials['username'], password=user_credentials['password'])
 
-        response = self.client.get(f'/words/{word.id}/edit', follow=True)
+    def test_show_edit_page(self):
+        response = self.client.get(f'/words/{self.word.id}/edit', follow=True)
+        
         self.assertContains(response, status_code=200, text='smallpox')
-        self.assertContains(response, status_code=200, text='оспа')
+        self.assertContains(response, text='оспа')
         self.assertContains(response, 'The children were all vaccinated against smallpox.')
+        self.word.delete()
 
     def test_update_word(self):
-        smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
+        data_to_update = {
+                'word': 'smallpoxes', 
+                'translation': 'натуральная оспа', 
+                'sentence': 'cool smallpoxes'
         }
+        # as we've created the word without using AddWord form we don't have any related audios
+        self.assertEqual(self.word.gttsaudio_set.count(), 0)
 
-        data_to_update = {'word': 'smallpoxes', 'translation': 'натуральная оспа', 'sentence': 'cool smallpoxes'}
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        pasha = User.objects.create_user(**credentials1)
-
-        sl = StudyingLanguage.objects.create(name='en')
-
-        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
-
-        self.client.login(username=credentials1['username'], password=credentials1['password'])
-
-        self.client.post(f'/words/{word.id}/edit/', data=data_to_update, follow=True)
-
-        # self.assertContains(response, status_code=200, text=f'{data_to_update["word"]} was successfully updated!')
-        word = Word.objects.last()
+        self.client.post(f'/words/{self.word.id}/edit/', data=data_to_update, follow=True)
+        
+        word = Word.objects.get(id=self.word.id)
+        
+        # post request to edit the word uses AddWord form therefore we generate 2 audios ('word' and 'sentence')
+        audios = word.gttsaudio_set
+        self.assertEqual(audios.count(), 2)
+        
+        self.assertEqual(audios.filter(use='word').count(), 1)
+        self.assertEqual(audios.filter(use='sentence').count(), 1)
         self.assertEqual(word.sentence, 'cool smallpoxes')
         self.assertEqual(word.translation, 'натуральная оспа')
+        self.word.delete()
 
+    def test_changing_gtts_audio_after_updating_the_word(self):
+        # we perform creating a new word via post request as 
+        # only in this case we bind GttsAudio objects to the word.
+
+        new_word = {
+                'word': 'box', 
+                'translation': 'коробка', 
+                'sentence': 'Cats like sitting in box.'
+        }
+        
+        self.client.post('/add_word', new_word)
+        
+        word = Word.objects.last()
+        related_word_audios = word.gttsaudio_set
+        
+        self.assertEqual(word.word, 'box')
+        self.assertEqual(related_word_audios.count(), 2)
+        
+        initial_word_audio = related_word_audios.filter(use='word')[0]
+        initial_sentence_audio = related_word_audios.filter(use='sentence')[0]
+        
+        data_to_update = {
+            'word': 'keyboard',
+            'translation': 'клавиатура',
+            'sentence': 'I have never used mechanical keyboard.'
+        }
+        self.client.post(f'/words/{word.id}/edit/', data_to_update)
+
+        updated_word = Word.objects.get(id=word.id)
+        
+        new_audio_set = updated_word.gttsaudio_set
+        
+        self.assertEqual(new_audio_set.count(), 2)
+        self.assertEqual(updated_word.word, data_to_update['word'])
+        self.assertNotEqual(new_audio_set.filter(use='word')[0], initial_word_audio)
+        self.assertNotEqual(new_audio_set.filter(use='sentence')[0], initial_sentence_audio)
+        word.delete()
+        self.word.delete()
+
+    def test_updating_only_sentence_after_updating_the_word(self):
+        # we perform creating a new word via post request as 
+        # only in this case we bind GttsAudio objects to the word.
+
+        new_word = {
+                'word': 'box', 
+                'translation': 'коробка', 
+                'sentence': 'Cats like sitting in box.'
+        }
+
+        self.client.post('/add_word', new_word)
+        
+        word = Word.objects.last()
+        related_word_audios = word.gttsaudio_set
+        
+        initial_word_audio = related_word_audios.filter(use='word')[0]
+        initial_sentence_audio = related_word_audios.filter(use='sentence')[0]
+        
+        data_to_update = {
+            'word': 'box',
+            'translation': 'коробочка',
+            'sentence': 'Box is very useful tool when you change your lodgings.'
+        }
+
+        self.client.post(f'/words/{word.id}/edit/', data_to_update)
+        
+        updated_word = Word.objects.get(id=word.id)
+        current_word_audio = updated_word.gttsaudio_set.filter(use='word')[0]
+        current_sentence_audio = updated_word.gttsaudio_set.filter(use='sentence')[0]
+
+        self.assertEqual(updated_word.word, new_word['word'])
+        
+        self.assertNotEqual(word.sentence, updated_word.sentence)
+        self.assertEqual(updated_word.sentence, data_to_update['sentence'])
+        self.assertEqual(initial_word_audio, current_word_audio)
+        self.assertNotEqual(initial_sentence_audio, current_sentence_audio)
+
+        word.delete()
+        self.word.delete()
+        
+
+
+
+class StudyingToNativeCardViewTests(TestCase):
     def test_knowing_the_word(self):
         smallpox = {
             'word': 'smallpox',
@@ -688,6 +786,8 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(word.know_studying_to_native, False)
         self.assertEqual(word.know_native_to_studying, False)
 
+
+class AccountStatisticsTests(TestCase):
     def test_zero_count_of_words(self):
         credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
 

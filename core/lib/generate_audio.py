@@ -13,18 +13,26 @@ class GenerateAudio:
         self.word = word
 
 
-    def perform(self):
+    def perform(self, target=''):
         if not isinstance(self.word, Word):
             return None
 
-        # if we have a studying word we will create an audition for this word.
-        if self.word.word:
-            self.bind_audition_to_word(text=self.word.word, use='word')
+        if target == '':
+            # if we have a studying word we will create an audition for this word.
+            if self.word.word:
+                self.bind_audition_to_word(text=self.word.word, use='word')
         
-        # if we have a sentence we will create an audition for this sentence.
-        if self.word.sentence:
-            self.bind_audition_to_word(text=self.word.sentence, use='sentence')
-    
+            # if we have a sentence we will create an audition for this sentence.
+            if self.word.sentence:
+                self.bind_audition_to_word(text=self.word.sentence, use='sentence')
+
+        elif target == 'word':
+            if self.word.word:
+                self.bind_audition_to_word(text=self.word.word, use='word')
+         
+        elif target == 'sentence':
+            if self.word.sentence:
+                self.bind_audition_to_word(text=self.word.sentence, use='sentence')
 
     def bind_audition_to_word(self, text, use):
             # generate mp3 audition file for certain text

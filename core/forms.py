@@ -76,9 +76,10 @@ class AddWordForm(forms.Form):
                                    'example of sentence in english'}))
 
     def clean(self):
-        word = self.cleaned_data.get('word')
+        word = self.cleaned_data.get('word', '')
 
-        translation = self.cleaned_data.get('translation')
+        translation = self.cleaned_data.get('translation', '')
+
         if not word:
             raise forms.ValidationError('You have not entered any word!')
         
@@ -100,11 +101,23 @@ class AddWordForm(forms.Form):
             messages.success(request, f'{self.cleaned_data.get("word")} was successfully added to your learn list!')
 
     def update(self, request, word):
+        previous_word_value = word.word
+        previous_sentence_value = word.sentence
         try:
             word.word = request.POST['word']
             word.sentence = request.POST['sentence']
             word.translation = request.POST['translation']
             word.save()
+            
+            # if we changed 'word' field we should remove previous audition and generate new
+            if previous_word_value != word.word:
+                word.gttsaudio_set.filter(use='word').delete()
+                GenerateAudio(word).perform(target='word')
+
+            # if we changed 'sentence' field of word we should remove previous audition and generate new
+            if previous_sentence_value != word.sentence:
+                word.gttsaudio_set.filter(use='sentence').delete()
+                GenerateAudio(word).perform(target='sentence')
         except:
             messages.error(request, 'Something went wrong!')
         else:
