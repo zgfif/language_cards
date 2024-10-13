@@ -17,24 +17,15 @@ class GenerateAudio:
         if not isinstance(self.word, Word):
             return None
 
-        if target == '':
+        if target in ('', 'word'):
             # if we have a studying word we will create an audition for this word.
-            if self.word.word:
-                self.bind_audition_to_word(text=self.word.word, use='word')
-        
-            # if we have a sentence we will create an audition for this sentence.
-            if self.word.sentence:
-                self.bind_audition_to_word(text=self.word.sentence, use='sentence')
+                self.bind_audition_to_word(use='word', text=self.word.word)
 
-        elif target == 'word':
-            if self.word.word:
-                self.bind_audition_to_word(text=self.word.word, use='word')
-         
-        elif target == 'sentence':
-            if self.word.sentence:
-                self.bind_audition_to_word(text=self.word.sentence, use='sentence')
+        if target in ('', 'sentence'):
+                self.bind_audition_to_word(use='sentence', text=self.word.sentence)
 
-    def bind_audition_to_word(self, text, use):
+    def bind_audition_to_word(self, use, text=''):
+        if text:
             # generate mp3 audition file for certain text
             tts = gTTS(text=text, lang=self.word.studying_lang.name)
 
