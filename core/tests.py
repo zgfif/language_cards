@@ -1491,39 +1491,85 @@ class TranslateWorldApiTests(TestCase):
 
 
 class GenerateAudioTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='pasha', email='mail@example.com')
+        cls.studying_language = StudyingLanguage.objects.create(name='en')
+
     def test_use_invalid_argument_generating_audio(self):
+        '''test ensures that if will not generate audios when we use NOT object of class Word'''
         GenerateAudio(word='sample text').perform()
         self.assertEqual(GttsAudio.objects.count(), 0)
 
 
     def test_generating_audios_for_word(self):         
-        user = User.objects.create(username='pasha', email='mail@example.com')
-
-        sl = StudyingLanguage.objects.create(name='en')
+        '''test generating audios for word when we have both "word" and "sentence" and want generate both '''
         word_details = {
                 'word': 'smallpox',
                 'translation': 'оспа',
                 'sentence': 'The children were all vaccinated against smallpox.',
             }
 
-        word = Word.objects.create(added_by=user, studying_lang=sl, **word_details)
+        word = Word.objects.create(added_by=self.user, 
+                                   studying_lang=self.studying_language, 
+                                   **word_details)
+        
         GenerateAudio(word=word).perform()
+        
         self.assertEqual(GttsAudio.objects.count(), 2)
         word.delete()
 
 
-    def test_generating_only_one_audio_for_word(self):         
-        user = User.objects.create(username='pasha', email='mail@example.com')
-
-        sl = StudyingLanguage.objects.create(name='en')
+    def test_generating_only_one_audio_for_word(self):
+        ''' this test ensures we generate only one audio (for "word" attribute), as the "sentence" is empty '''
         word_details = {
                 'word': 'smallpox',
                 'translation': 'оспа',
                 'sentence': ''
             }
 
-        word = Word.objects.create(added_by=user, studying_lang=sl, **word_details)
+        word = Word.objects.create(added_by=self.user, 
+                                   studying_lang=self.studying_language, 
+                                   **word_details)
+
         GenerateAudio(word=word).perform()
         self.assertEqual(GttsAudio.objects.count(), 1)
         word.delete()
 
+
+    def test_generating_audio_when_the_target_is_word(self):
+        ''' this test ensures we generate only one audio (for "word" attribute)'''
+        word_details = {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'Smallpox is dangerous disease for humans.'
+            }
+
+        word = Word.objects.create(added_by=self.user, 
+                                   studying_lang=self.studying_language, 
+                                   **word_details)
+
+        GenerateAudio(word=word).perform(target='word')
+        
+        self.assertEqual(word.gttsaudio_set.count(), 1)
+        self.assertEqual(word.gttsaudio_set.first().use, 'word')
+        word.delete()
+    
+    def test_generating_audio_when_the_target_is_sentence(self):
+        ''' this test ensures we generate only one audio (for "word" attribute)'''
+        word_details = {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'Smallpox is dangerous disease for humans.'
+            }
+
+        word = Word.objects.create(added_by=self.user, 
+                                   studying_lang=self.studying_language, 
+                                   **word_details)
+
+        GenerateAudio(word=word).perform(target='sentence')
+        
+        self.assertEqual(word.gttsaudio_set.count(), 1)
+        self.assertEqual(word.gttsaudio_set.first().use, 'sentence')
+        word.delete()
+    
