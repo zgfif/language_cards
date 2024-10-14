@@ -172,7 +172,6 @@ class StudyingToNativeCard(View):
             # calculate the next word id for reference
             ids = self.ids()
 
-
             next_id = NextListItem(ids, id).calculate()
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
@@ -242,11 +241,10 @@ class EditWordView(TemplateView):
         item = get_object_or_404(Word, id=id)
 
         form = AddWordForm(request.POST)
-
         if form.is_valid():
             form.update(request, item)
             return redirect('/words')
-        return self.render_to_response(context={'form': form})
+        return render(request, template_name='edit_word.html', context={'form': form})
 
 
 class ResetWordView(View):
