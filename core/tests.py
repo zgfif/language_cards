@@ -37,18 +37,18 @@ class SignUpViewTests(TestCase):
         self.assertContains(response, text=text, status_code=200)
 
     def test_successful_registration(self):
-        user_data = {
+        form_data = {
             'username': 'pasha',
             'email': 'zihzag@gmail.com',
             'password': '12345678',
             'password_confirmation': '12345678',
         }
 
-        response = self.client.post('/signup', user_data, follow=True)
+        response = self.client.post('/signup', form_data, follow=True)
         text = 'Congratulations! You have successfully registered!'
         u = User.objects.last()
         t = Token.objects.last()
-        self.assertEqual(u.email, user_data['email'])
+        self.assertEqual(u.email, form_data['email'])
         self.assertEqual(t.user_id, u.id)
         self.assertContains(response, text=text, status_code=200)
 
@@ -166,6 +166,25 @@ class AccountViewTests(TestCase):
 
 
 class AddWordViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {'username': 'pasha', 'password': '1asdfX'}
+
+        cls.sl = StudyingLanguage.objects.create(name='en')
+
+        cls.word_details = {
+            'word': 'smallpox',
+            'translation': 'оспа',
+            'sentence': 'The children were all vaccinated against smallpox.',
+        }
+
+        u = User.objects.create_user(**cls.credentials)
+        u.profile.studying_lang = cls.sl
+        u.profile.save()
+
+    def setUp(self):
+        self.client.login(**self.credentials)
+    
     # this function removes all unnecessary gTTS files which are saved in the media/ directory during tests
     def tearDown(self):
         files_to_remove = GttsAudio.objects.all().values_list('audio_name', flat=True)
@@ -176,207 +195,91 @@ class AddWordViewTests(TestCase):
                 # RemoveFromGcs().perform(filename)
 
     def test_access_to_form_for_not_authorized_user(self):
+        self.client.logout()
         response = self.client.get('/add_word', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
     def test_access_to_form_for_authorized_user(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        User.objects.create_user(**credentials)
-        self.client.login(**credentials)
-
         response = self.client.get('/add_word')
-
         self.assertContains(response, text='word', status_code=200)
         self.assertContains(response, text='translation')
         self.assertContains(response, text='sentence')
         self.assertContains(response, text='add')
 
     def test_adding_word_to_dictionary(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-
-        sl = StudyingLanguage.objects.create(name='en')
-
-        word_details = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-
-        u = User.objects.create_user(**credentials)
-        u.profile.studying_lang = sl
-        u.profile.save()
-        self.client.login(**credentials)
+        response = self.client.post('/add_word', self.word_details, follow=True)
+        success_message = f'{self.word_details["word"]} was successfully added to your learn list!'
+        words = Word.objects.all()
         
-        response = self.client.post('/add_word', word_details, follow=True)
-        success_message = f'{word_details["word"]} was successfully added to your learn list!'
-        self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
+        self.assertEqual(words.count(), 1)
+        self.assertEqual(GttsAudio.objects.filter(word=words[0]).count(), 2)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_translation(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-
-        word_details = {
-            'word': 'smallpox',
-            'translation': '',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-        User.objects.create_user(**credentials)
-        self.client.login(**credentials)
-
-        response = self.client.post('/add_word', word_details)
-        failure_message = f'You have not added translation for {word_details["word"]}!'
+        response = self.client.post('/add_word', {**self.word_details, 'translation': ''})
+        failure_message = f'You have not added translation for {self.word_details["word"]}!'
         self.assertContains(response, text=failure_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_sentence(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-
-        sl = StudyingLanguage.objects.create(name='en')
-
-        word_details = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': '',
-            'studying_lang_id': sl.id
-        }
-        u = User.objects.create_user(**credentials)
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
+        word_details = {**self.word_details, 'sentence': ''}
 
         response = self.client.post('/add_word', word_details, follow=True)
+
         success_message = f'{word_details["word"]} was successfully added to your learn list!'
-        self.assertEqual(Word.objects.filter(word=word_details['word']).count(), 1)
+        
+        words = Word.objects.filter(word=word_details['word'])
+        
+        self.assertEqual(words.count(), 1)
+        self.assertEqual(GttsAudio.objects.filter(word=words[0]).count(), 1)
         self.assertContains(response, text=success_message, status_code=200)
 
     def test_adding_word_to_dictionary_without_word(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        
-        sl = StudyingLanguage.objects.create(name='en') 
-        word_details = {
-            'word': '',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-        u = User.objects.create_user(**credentials)
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
-        
-        response = self.client.post('/add_word', word_details)
+        response = self.client.post('/add_word', {**self.word_details, 'word': ''})
         failure_message = 'You have not entered any word!'
         self.assertContains(response, text=failure_message, status_code=200)
 
 
     def test_redirection_after_successful_adding_word(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        
-        sl = StudyingLanguage.objects.create(name='en') 
-        
-        word_details = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-
-        u = User.objects.create_user(**credentials)
-        
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
-
-        response = self.client.post('/add_word', word_details, follow=True)
+        response = self.client.post('/add_word', self.word_details, follow=True)
         path = reverse('words')
 
         self.assertContains(response, text='successfully added', status_code=200)
         self.assertEqual(path, response.redirect_chain[-1][0])
 
     def test_trying_to_add_duplicate_word(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        
-        sl = StudyingLanguage.objects.create(name='en') 
-        word_details = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-        
         almost_the_same_word = {
             'word': 'smallpox',
             'translation': 'натуральная оспа',
             'sentence': 'To Jenner\'s relief James did not catch smallpox.',
         }
 
-        u = User.objects.create_user(**credentials)
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
-        
-        response = self.client.post('/add_word', word_details)
+        response = self.client.post('/add_word', self.word_details)
         self.assertEqual(Word.objects.count(), 1)
+
         response = self.client.post('/add_word', almost_the_same_word)
         self.assertEqual(Word.objects.count(), 1)
 
-    def test_having_related_two_audio_files_to_added_word(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        
-        sl = StudyingLanguage.objects.create(name='en') 
-        
-        word_details = {
-            'word': 'against',
-            'translation': 'против',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
-
-        u = User.objects.create_user(**credentials)
-        
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
-
-        response = self.client.post('/add_word', word_details, follow=True)
-        word = Word.objects.last()
-        self.assertEqual(word.word, 'against')
-        self.assertEqual(GttsAudio.objects.filter(word=word).count(), 2)
-    
-    def test_having_related_one_audio_file_to_added_word(self):
-        credentials = {'username': 'pasha', 'password': '1asdfX'}
-        
-        sl = StudyingLanguage.objects.create(name='en') 
-        
-        word_details = {
-            'word': 'smallpox',
-            'translation': 'оспа'
-        }
-
-        u = User.objects.create_user(**credentials)
-        
-        u.profile.studying_lang = sl
-        u.profile.save()
-
-        self.client.login(**credentials)
-
-        response = self.client.post('/add_word', word_details, follow=True)
-        word = Word.objects.last()
-        self.assertEqual(word.word, 'smallpox')
-        self.assertEqual(GttsAudio.objects.filter(word=word).count(), 1)
-
-
 
 class WordListViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.sl = StudyingLanguage.objects.create(name='en')
+        cls.credentials = {'username': 'pasha', 'email': 'mail@example.com', 'password':'1asdfX'}
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.user.profile.studying_lang = cls.sl
+        cls.user.profile.save()
+
+    def setUp(self):
+        self.client.login(**self.credentials)
+
     def test_access_without_authorization(self):
+        self.client.logout()
         response = self.client.get('/words', follow=True)
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
     def test_without_any_words(self):
-        User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
-        self.client.login(username='pasha', password='1asdfX')
         response = self.client.get('/words')
         self.assertContains(response, text='You haven\'t added any words', status_code=200)
         self.assertContains(response, text='add word')
@@ -402,143 +305,95 @@ class WordListViewTests(TestCase):
             },
         ]
 
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-
-        sl = StudyingLanguage.objects.create(name='en')
-
-        pasha = User.objects.create_user(**credentials1)
-        
-        pasha.profile.studying_lang = sl
-        pasha.profile.save()
-
         for word in words:
-            Word.objects.create(**word, added_by=pasha, studying_lang=sl)
-
-        self.client.login(**credentials1)
+            Word.objects.create(**word, added_by=self.user, studying_lang=self.sl)
 
         response = self.client.get('/words')
         self.assertEqual(response.context['words'][0].word, 'factory')
 
 
 class LearningPageViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+        
+        cls.user = User.objects.create_user(**cls.credentials)
+        cls.bg = StudyingLanguage.objects.create(name='bg')
+        cls.en = StudyingLanguage.objects.create(name='en')
+
+    def setUp(self):
+        self.client.login(**self.credentials) 
+
     def test_opening_learning_page_without_authorization(self):
+        self.client.logout()
         response = self.client.get('/training', follow=True)
+        
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
 
     def test_opening_learning_page_after_authorization_with_words(self):
-        smallpox = {
+        self.user.profile.studying_lang = self.bg
+        self.user.profile.save()
+
+        bulgarian_word = {
             'word': 'джоб',
             'translation': 'карман',
             'sentence': 'Моите дънки имат два джоба',
         }
-
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         
-        sl = StudyingLanguage.objects.create(name='bg')
-        
-        user = User.objects.create_user(**credentials)
-        user.profile.studying_lang=sl
-        user.profile.save()
-        self.client.login(username=credentials['username'], password=credentials['password'])
-        
-        
-        Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
+        Word.objects.create(**bulgarian_word, added_by=self.user, studying_lang=self.bg)
         response = self.client.get('/training')
+        
         self.assertContains(response, status_code=200, text='start (bg-ru)')
         self.assertContains(response, status_code=200, text='start (ru-bg)')
         self.assertNotContains(response, text='username/password')
 
     def test_opening_learning_page_after_authorization_without_words(self):
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-        User.objects.create_user(**credentials)
-        self.client.login(username=credentials['username'], password=credentials['password'])
         response = self.client.get('/training')
-        self.assertNotContains(response, status_code=200, text='start (en-ru)')
-        self.assertNotContains(response, status_code=200, text='start (ru-en)')
+        
+        self.assertNotContains(response, status_code=200, text='start (bg-ru)')
+        self.assertNotContains(response, status_code=200, text='start (ru-bg)')
         self.assertContains(response, status_code=200, text="To start learning words")
         self.assertNotContains(response, text='username/password')
 
     def test_know_studying_to_native_card(self):
-        smallpox = {
+        english_word = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        user = User.objects.create_user(**credentials)
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-        sl = StudyingLanguage.objects.create(name='en')
-        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
-        
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-
+        word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
         self.client.get('/training')
-
         response = self.client.get(f'/studying_to_native/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
     def test_know_native_to_studying_card(self):
-        smallpox = {
+        english_word = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        user = User.objects.create_user(**credentials)
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-        sl = StudyingLanguage.objects.create(name='en')
-        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-
+        word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
         self.client.get('/training')
-
         response = self.client.get(f'/native_to_studying/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
 
-    def test_drop_word(self):
+    def test_successful_removing_word(self):
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        user = User.objects.create_user(**credentials)
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-        sl = StudyingLanguage.objects.create(name='en')
-        word = Word.objects.create(**smallpox, added_by=user, studying_lang=sl)
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-        self.assertEqual(Word.objects.filter(added_by=user).count(), 1)
+        word = Word.objects.create(**smallpox, added_by=self.user, studying_lang=self.en)
+        self.assertEqual(Word.objects.filter(added_by=self.user).count(), 1)
 
         self.client.get(f'/words/{word.id}/delete/')
 
-        self.assertEqual(Word.objects.filter(added_by=user).count(), 0)
+        self.assertEqual(Word.objects.filter(added_by=self.user).count(), 0)
 
     def test_drop_unexisting_id_word(self):
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        User.objects.create_user(**credentials)
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-
-        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
-
-        self.client.login(username=credentials['username'], password=credentials['password'])
-
         response = self.client.get('/words/unexisting_id/delete')
         self.assertEqual(response.status_code, 404)
 
@@ -548,18 +403,14 @@ class LearningPageViewTests(TestCase):
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
         credentials2 = {'username': 'alex', "password": '24safkl', 'email': 'alex@gmail.com'}
-
-        pasha = User.objects.create_user(**credentials1)
         User.objects.create_user(**credentials2)
-
         self.assertEqual(User.objects.all().count(), 2)
-        sl = StudyingLanguage.objects.create(name='en')
-        word = Word.objects.create(**smallpox, added_by=pasha, studying_lang=sl)
+        
+        word = Word.objects.create(**smallpox, added_by=self.user, studying_lang=self.en)
 
-        self.client.login(username=credentials2['username'], password=credentials2['password'])
+        self.client.logout()
+        self.client.login(**credentials2)
 
         response = self.client.get(f'/words/{word.id}/delete', follow=True)
         self.assertContains(response, status_code=200, text='something went wrong')
@@ -569,22 +420,20 @@ class LearningPageViewTests(TestCase):
 class EditWordViewTests(TestCase):
     # before performing each test in this test case we should have an existing user 
     # and the word and we also login
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         word_details = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-
-        user_credentials = {
+        cls.credentials = {
             'username': 'pasha', 
             'password': '1asdfX', 
             'email': 'pasha@gmail.com'
         }
-        
         # creating a user
-        user = User.objects.create_user(**user_credentials)
-        
+        user = User.objects.create_user(**cls.credentials)
         # creating a "studying language"
         studying_lang = StudyingLanguage.objects.create(name='en')
         
@@ -593,9 +442,10 @@ class EditWordViewTests(TestCase):
         user.profile.save()
 
         # creating a word which will be tested as the updating target
-        self.word = Word.objects.create(**word_details, added_by=user, studying_lang=studying_lang)
+        cls.word = Word.objects.create(**word_details, added_by=user, studying_lang=studying_lang)
         
-        self.client.login(username=user_credentials['username'], password=user_credentials['password'])
+    def setUp(self):
+        self.client.login(**self.credentials)
 
     def test_show_edit_page(self):
         response = self.client.get(f'/words/{self.word.id}/edit', follow=True)
