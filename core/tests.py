@@ -1116,13 +1116,10 @@ class ProfileTests(TestCase):
     def test_if_a_new_user_has_profile(self):
         self.assertEqual(Profile.objects.count(), 1)
         self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(self.pasha.profile.studying_lang, None)
+        self.assertIsNone(self.pasha.profile.studying_lang)
 
 
     def test_no_profile_after_removing_user(self):
-        self.assertEqual(Profile.objects.count(), 1)
-        self.assertEqual(User.objects.count(), 1)
-        
         User.objects.last().delete()
         
         self.assertEqual(User.objects.count(), 0)
@@ -1130,8 +1127,10 @@ class ProfileTests(TestCase):
 
 
     def test_assignment_studying_lang_to_profile(self):
-        self.assertEqual(self.pasha.profile.studying_lang, None)
+        self.assertIsNone(self.pasha.profile.studying_lang)
+        
         en = StudyingLanguage.objects.create(name='en')
+        
         self.pasha.profile.studying_lang = en
         self.pasha.profile.save()
         
@@ -1141,93 +1140,51 @@ class ProfileTests(TestCase):
 
 
 class ToggleStudyingLanguageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.en = StudyingLanguage.objects.create(name='en')
+        cls.bg = StudyingLanguage.objects.create(name='bg')
+        
+        credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        cls.pasha = User.objects.create_user(**credentials)
+        cls.token = Token.objects.get(user_id=cls.pasha.id).key
+
+    def setUp(self):
+        self.client = APIClient()
+    
+    def test_new_user_has_not_studying_lang(self):
+        self.assertIsNone(self.pasha.profile.studying_lang)
+
     def test_change_studying_language_for_user(self):
-        en = StudyingLanguage.objects.create(name='en')
-        bg = StudyingLanguage.objects.create(name='bg')
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
+        self.pasha.profile.studying_lang = self.bg
+        self.pasha.profile.save()
         
-        pasha = User.objects.create_user(**credentials1)
-        
-        pasha.profile.studying_lang = bg
-        pasha.profile.save()
-
-        self.assertEqual(pasha.profile.studying_lang, bg)
-
-        auth_token = Token.objects.get(user_id=pasha.id).key
-        
-        client = APIClient()
-        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
-        self.assertEqual(User.objects.last().profile.studying_lang, en)
-
+        self.client.patch('/toggle_lang', {'studying_lang': 'en'}, 
+                     headers={'Authorization': 'Token ' + self.token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, self.en)
     
     def test_set_studying_language_for_user(self):
-        en = StudyingLanguage.objects.create(name='en')
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-        
-        pasha = User.objects.create_user(**credentials1)
-
-        self.assertEqual(pasha.profile.studying_lang, None)
-
-        auth_token = Token.objects.get(user_id=pasha.id).key
-        
-        client = APIClient()
-        response = client.patch('/toggle_lang', {'studying_lang': 'en'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
-        self.assertEqual(User.objects.last().profile.studying_lang, en)
+        self.client.patch('/toggle_lang', {'studying_lang': 'en'}, 
+                     headers={'Authorization': 'Token ' + self.token}, format='json')
+        self.assertEqual(User.objects.last().profile.studying_lang, self.en)
 
 
     def test_reset_studying_language_for_user(self):
-        en = StudyingLanguage.objects.create(name='en')
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-        
-        pasha = User.objects.create_user(**credentials1)
-        
-        pasha.profile.studying_lang = en
-
-        self.assertEqual(pasha.profile.studying_lang, en)
-
-        auth_token = Token.objects.get(user_id=pasha.id).key
-        
-        client = APIClient()
-        response = client.patch('/toggle_lang', {'studying_lang': 'None'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
-        self.assertEqual(User.objects.last().profile.studying_lang, None)
+        self.client.patch('/toggle_lang', {'studying_lang': 'None'}, 
+                     headers={'Authorization': 'Token ' + self.token}, format='json')
+        self.assertIsNone(User.objects.last().profile.studying_lang)
 
 
     def test_trying_to_set_inccorrect_studying_language_for_user(self):
-        en = StudyingLanguage.objects.create(name='en')
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-        
-        pasha = User.objects.create_user(**credentials1)
-        
-        pasha.profile.studying_lang = en
-
-        self.assertEqual(pasha.profile.studying_lang, en)
-
-        auth_token = Token.objects.get(user_id=pasha.id).key
-        
-        client = APIClient()
-        response = client.patch('/toggle_lang', {'studying_lang': 'bg'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
-        self.assertEqual(User.objects.last().profile.studying_lang, None)
+        self.client.patch('/toggle_lang', {'studying_lang': 'yy'}, 
+                                headers={'Authorization': 'Token ' + self.token}, format='json')
+        self.assertIsNone(User.objects.last().profile.studying_lang)
 
 
     def test_sending_incorrect_data(self):
-        en = StudyingLanguage.objects.create(name='en')
-
-        credentials1 = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com', }
-        
-        pasha = User.objects.create_user(**credentials1)
-        
-        pasha.profile.studying_lang = en
-
-        self.assertEqual(pasha.profile.studying_lang, en)
-
-        auth_token = Token.objects.get(user_id=pasha.id).key
-        
-        client = APIClient()
-        response = client.patch('/toggle_lang', {'random': 'data'}, headers={'Authorization': 'Token ' + auth_token}, format='json')
-        self.assertEqual(User.objects.last().profile.studying_lang, None)
+        self.client.patch('/toggle_lang', {'random': 'data'}, 
+                                headers={'Authorization': 'Token ' + self.token}, format='json')
+        self.assertIsNone(User.objects.last().profile.studying_lang)
 
 
 class TranslateWorldApiTests(TestCase):
