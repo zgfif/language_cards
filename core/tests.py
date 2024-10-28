@@ -1188,23 +1188,23 @@ class ToggleStudyingLanguageTests(TestCase):
 
 
 class TranslateWorldApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
     def test_successful_translation_from_bulgarian(self):
-        client = APIClient()
-        response = client.post('/translate', {'source_lang': 'bg', 'text':'джоб'},  format='json')
+        response = self.client.post('/translate', {'source_lang': 'bg', 'text':'джоб'},  format='json')
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['translation'], 'карман')
 
     def test_successful_translation_from_english(self):
-        client = APIClient()
-        response = client.post('/translate', {'source_lang': 'en', 'text':'house'},  format='json')
+        response = self.client.post('/translate', {'source_lang': 'en', 'text':'house'},  format='json')
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['translation'], 'дом')
 
     def test_trying_to_translate_empty_str(self):
-        client = APIClient()
-        response = client.post('/translate', {'source_lang': 'en', 'text':''},  format='json')
+        response = self.client.post('/translate', {'source_lang': 'en', 'text':''},  format='json')
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['translation'], '') 
