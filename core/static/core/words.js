@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
     // play audio sentence pronunciation after clicking on "play" button
     $(document).on('click', '.playBtnSentence', function(event) {
         playElement = $(event.target.parentNode).find('.audioTag');
-	console.log(playElement);
         playElement[0].play();
     });
 
@@ -26,6 +25,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
     enableSearching(authToken = getAuthToken());
+
+    // after "create update or destroy" operation with a word we will show notification
+    showNotification();
 });
 
 
@@ -255,4 +257,9 @@ function enableSearching(authToken = null) {
 };
 
 
-
+// this function is used to show popup message after each "create update or destroy" operation
+function showNotification(text='') {
+    $('ul.messages li').each(function() {
+       alert($(this)[0].innerText);
+    });
+}

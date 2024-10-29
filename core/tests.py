@@ -209,7 +209,7 @@ class AddWordViewTests(TestCase):
 
     def test_adding_word_to_dictionary(self):
         response = self.client.post('/add_word', self.word_details, follow=True)
-        success_message = f'{self.word_details["word"]} was successfully added to your learn list!'
+        success_message = f'&quot;{self.word_details["word"]}&quot; was successfully added to your learn list!'
         words = Word.objects.all()
         
         self.assertEqual(words.count(), 1)
@@ -226,7 +226,7 @@ class AddWordViewTests(TestCase):
 
         response = self.client.post('/add_word', word_details, follow=True)
 
-        success_message = f'{word_details["word"]} was successfully added to your learn list!'
+        success_message = f'&quot;{word_details['word']}&quot; was successfully added to your learn list!'
         
         words = Word.objects.filter(word=word_details['word'])
         
@@ -380,17 +380,30 @@ class LearningPageViewTests(TestCase):
 
         self.assertContains(response, status_code=200, text='smallpox')
 
-    def test_successful_removing_word(self):
+
+class DeleteWordViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
+
         smallpox = {
             'word': 'smallpox',
             'translation': 'оспа',
             'sentence': 'The children were all vaccinated against smallpox.',
         }
-        word = Word.objects.create(**smallpox, added_by=self.user, studying_lang=self.en)
+
+        cls.user = User.objects.create_user(**cls.credentials)
+        en = StudyingLanguage.objects.create(name='en')
+        cls.word = Word.objects.create(**smallpox, added_by=cls.user, studying_lang=en)
+    
+    def setUp(self):
+        self.client.login(**self.credentials)
+        
+    def test_successful_removing_word(self):
         self.assertEqual(Word.objects.filter(added_by=self.user).count(), 1)
-
-        self.client.get(f'/words/{word.id}/delete/')
-
+        response = self.client.get(f'/words/{self.word.id}/delete/', follow=True)
+        message = f'Congratulations! You have successfully deleted &quot;{self.word.word}&quot;' 
+        self.assertContains(response, text=message, status_code=200)
         self.assertEqual(Word.objects.filter(added_by=self.user).count(), 0)
 
     def test_drop_unexisting_id_word(self):
@@ -398,21 +411,14 @@ class LearningPageViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_trying_to_remove_not_your_word(self):
-        smallpox = {
-            'word': 'smallpox',
-            'translation': 'оспа',
-            'sentence': 'The children were all vaccinated against smallpox.',
-        }
         credentials2 = {'username': 'alex', "password": '24safkl', 'email': 'alex@gmail.com'}
         User.objects.create_user(**credentials2)
         self.assertEqual(User.objects.all().count(), 2)
-        
-        word = Word.objects.create(**smallpox, added_by=self.user, studying_lang=self.en)
 
         self.client.logout()
         self.client.login(**credentials2)
 
-        response = self.client.get(f'/words/{word.id}/delete', follow=True)
+        response = self.client.get(f'/words/{self.word.id}/delete', follow=True)
         self.assertContains(response, status_code=200, text='something went wrong')
         self.assertEqual(Word.objects.all().count(), 1)
 
