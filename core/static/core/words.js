@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
     // play audio sentence pronunciation after clicking on "play" button
     $(document).on('click', '.playBtnSentence', function(event) {
         playElement = $(event.target.parentNode).find('.audioTag');
-	console.log(playElement);
         playElement[0].play();
     });
 
@@ -26,6 +25,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 
     enableSearching(authToken = getAuthToken());
+
 });
 
 
@@ -253,6 +253,5 @@ function enableSearching(authToken = null) {
 		                              performClearingTable = true);
     }
 };
-
 
 

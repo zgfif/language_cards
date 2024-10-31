@@ -98,7 +98,8 @@ class AddWordForm(forms.Form):
         except:
             messages.error(request, 'Something went wrong!')
         else:
-            messages.success(request, f'{self.cleaned_data.get("word")} was successfully added to your learn list!')
+            txt = f'"{self.cleaned_data.get("word")}" was successfully added to your learn list!'
+            messages.success(request, txt)
 
     def update(self, request, word):
         previous_word_value = word.word
@@ -121,7 +122,7 @@ class AddWordForm(forms.Form):
         except:
             messages.error(request, 'Something went wrong!')
         else:
-            messages.success(request, f'{self.cleaned_data.get("word")} was successfully updated!')
+            messages.success(request, f'"{self.cleaned_data.get("word")}" was successfully updated!')
 
 
 class StudyingLanguageForm(forms.Form):

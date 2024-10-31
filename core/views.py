@@ -210,7 +210,7 @@ class DeleteWordView(View):
             word = get_object_or_404(Word, id=id)
             if word and word.added_by == request.user:
                 word.delete()
-                messages.success(request, 'Congratulations! You have successfully deleted word')
+                messages.success(request, f'Congratulations! You have successfully deleted \"{word.word}\"')
             else:
                 messages.error(request, 'error! something went wrong...')
 
