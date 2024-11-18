@@ -4,11 +4,15 @@
 
 <!-- this is the hidden audio tag which start playing audio 
 after clicking on image with id "playBtnSentence" -->
-<audio id="sentenceAudio" controls src="{% full_audio_sentence_path word %}" hidden></audio>
-	    <!-- this image is used as clicking button to play the "sentence" audio -->
-<img id="playBtnSentence" src="/static/core/images/play.svg" height="20px" alt="play button">
 
+<!-- assign result of templatetag to variable "audio_path" to use in "if clause" -->
+{% full_audio_sentence_path word as audio_path %}
 
+{% if audio_path %}
+    <audio id="sentenceAudio" controls src="{{ audio_path }}" hidden></audio>
+	<!-- this image is used as clicking button to play the "sentence" audio -->
+    <img id="playBtnSentence" src="/static/core/images/play.svg" height="20px" alt="play button">
+{% endif %}
 {% block js %}
     <script src="{% static 'core/js/play_sentence.js' %}"></script>
 {% endblock %}

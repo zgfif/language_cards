@@ -31,3 +31,6 @@
    max-width: 80%;
     align-self: center;
 }
+.playBtn, .playBtnSentence, .dropdown-toggle {
+  cursor: pointer;
+}

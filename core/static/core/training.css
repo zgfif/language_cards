@@ -30,3 +30,7 @@
 input {
     text-align: center;
 }
+
+#playBtnSentence {
+    cursor: pointer;
+ }
