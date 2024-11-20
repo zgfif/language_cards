@@ -10,14 +10,14 @@ const next_button = document.querySelector('#nextButton');
 const finish_button = document.querySelector('#finishButton');
 
 
-// if the sentence has learning word inside it, make it bold
+// if the sentence has "learning word" inside of it, make the "learning word" bold
 decorate_sentence(sentence_element, en_word);
 
 // put cursor inside the input
 entered_word.select();
 
 
-// checks the word after clicking Enter
+// checks the word after pressing "Enter"
 entered_word.addEventListener('keypress', function(event) {
     if (event.keyCode == 13) {
         check_button.click();
@@ -41,7 +41,7 @@ check_button.addEventListener('click', function () {
 
     let correctness = false
 
-    //    clause is the entered word is CORRECT
+    //    clause: is the entered word CORRECT?
     if (process_text(entered_word.value) == process_text(correct_word)) {
         message = 'It is correct!';
 
@@ -158,9 +158,15 @@ function remove_excess_spaces(text='') {
     return text.replace(reg, ' ').trim();
 }
 
+function replace_letter_e(text='') {
+    reg = /ё/gi;
+    return text.replace(reg, 'е')
+}
+
 // returns text in lower case and without multiple spaces in a row
 function process_text(text='') {
-    const lower_case = make_lower_case(text)
-    return remove_excess_spaces(lower_case)
+    let txt = make_lower_case(text);
+    txt = remove_excess_spaces(txt);
+    return replace_letter_e(txt)
 }
 
