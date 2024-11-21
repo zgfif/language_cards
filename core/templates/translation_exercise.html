@@ -8,7 +8,11 @@
 
 <!--the title depends on from direction-->
 {% block title %}
-    {% if direction == 'ru' %}en-ru{% else %}ru-en{% endif %} training
+    {% if direction == 'studying_to_native' %}
+        {{ studying_language }}-ru
+    {% else %}
+        ru-{{ studying_language }}
+    {% endif %} excercise
 {% endblock title %}
 
 
