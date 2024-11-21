@@ -175,7 +175,15 @@ class StudyingToNativeCard(View):
             next_id = NextListItem(ids, id).calculate()
 
             word = Word.objects.filter(id=id, added_by=request.user.id)[0]
-            context = {'word': word, 'ids': ids, 'next_id': next_id, 'direction': self.DIRECTION}
+            
+            context = {
+                'word': word, 
+                'studying_language': word.studying_lang, 
+                'ids': ids, 
+                'next_id': next_id, 
+                'direction': self.DIRECTION
+            }
+
             return render(request, template_name='translation_exercise.html', context=context)
         return redirect('/signin')
 
