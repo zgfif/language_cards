@@ -2,15 +2,15 @@ import json
 
 from django.core.exceptions import ValidationError
 from django.utils.timezone import localtime
-from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from core.lib.remove_file import RemoveFile
-from core.lib.remove_from_gcs import RemoveFromGcs
+# from core.lib.remove_from_gcs import RemoveFromGcs
 from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
 from core.lib.translate_text import TranslateText
 from core.lib.next_list_item import NextListItem
@@ -254,10 +254,10 @@ class AddWordViewTests(TestCase):
             'sentence': 'To Jenner\'s relief James did not catch smallpox.',
         }
 
-        response = self.client.post('/add_word', self.word_details)
+        self.client.post('/add_word', self.word_details)
         self.assertEqual(Word.objects.count(), 1)
 
-        response = self.client.post('/add_word', almost_the_same_word)
+        self.client.post('/add_word', almost_the_same_word)
         self.assertEqual(Word.objects.count(), 1)
 
 
@@ -1298,4 +1298,37 @@ class GenerateAudioTests(TestCase):
         self.assertEqual(word.gttsaudio_set.count(), 1)
         self.assertEqual(word.gttsaudio_set.first().use, 'sentence')
         word.delete()
-    
+
+
+class AvailableLanguagesTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create(username='pasha', email='pashaibratanov@gmail.com')
+        
+        cls.en = StudyingLanguage.objects.create(name='en')
+        cls.bg = StudyingLanguage.objects.create(name='bg')
+
+    def test_user_has_not_studying_language_test(self):
+        self.assertIsNone(self.user.profile.studying_lang)
+        
+        available_languages = self.user.profile.available_languages
+        
+        self.assertEqual(len(available_languages), 2)
+        self.assertIn(self.en, available_languages)
+        self.assertIn(self.bg, available_languages)
+
+
+    def test_user_has_studying_language(self):
+        self.user.profile.studying_lang = self.en
+        self.user.profile.save()
+
+        self.assertEqual(self.user.profile.studying_lang, self.en)
+        
+        available_languages = self.user.profile.available_languages
+        
+        self.assertEqual(len(available_languages), 1)
+        self.assertIn(self.bg, available_languages)
+        self.assertNotIn(self.en, available_languages)
+
+
+

@@ -28,6 +28,10 @@ class IndexView(View):
 
             # update learning ids
             WordIds(request, words).update()
+
+            context['other_languages'] = request.user.profile.available_languages
+            context['auth_token'] = request.user.auth_token
+
             context['studying_to_native_ids'] = request.session.get('studying_to_native_ids', [])
             context['native_to_studying_ids'] = request.session.get('native_to_studying_ids', [])
         return render(request=request, template_name=template_name, context=context)
