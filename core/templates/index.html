@@ -10,7 +10,7 @@
                 <!-- User is signed in -->
                 {% if has_words %}
                     {% if native_to_studying_ids or studying_to_native_ids %}
-                        <p style="text-align:center;"><a class="btn btn-primary" href="/training">train new words</a></p>
+                        <p style="text-align:center;"><a class="btn btn-primary" href="/exercises">train new words</a></p>
                     {% else %}
                         {% include 'snippets/nothing_to_learn.html' %}
                     {% endif %}

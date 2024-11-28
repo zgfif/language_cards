@@ -38,7 +38,7 @@ urlpatterns = [
     path('profile', views.AccountView.as_view()),
     path('add_word', views.AddWordView.as_view()),
     path('words', views.WordListView.as_view(), name='words'),
-    path('training', views.LearningPageView.as_view()),
+    path('exercises', views.ExercisesPageView.as_view()),
     path('studying_to_native/<int:id>/', views.StudyingToNativeCard.as_view()),
     path('native_to_studying/<int:id>/', views.NativeToStudyingCard.as_view()),
     path('words/<int:id>/delete/', views.DeleteWordView.as_view()),

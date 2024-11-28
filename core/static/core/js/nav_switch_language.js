@@ -1,4 +1,11 @@
 $(document).ready(function() {
+    if ($('.languageSelect').length == 0){
+        //console.log($('.languageSelect').parent());
+        $('#lang-indicator').removeAttr('data-bs-toggle');
+        $('#lang-indicator').attr('style', 'cursor: auto;');
+
+    };
+
     $('.languageSelect').on('click', function(event) {
         let target_language = $(event.target).data('id'),
             auth_token = $('#auth_token').data('auth_token');

@@ -312,7 +312,7 @@ class WordListViewTests(TestCase):
         self.assertEqual(response.context['words'][0].word, 'factory')
 
 
-class LearningPageViewTests(TestCase):
+class ExercisesPageViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
@@ -326,7 +326,7 @@ class LearningPageViewTests(TestCase):
 
     def test_opening_learning_page_without_authorization(self):
         self.client.logout()
-        response = self.client.get('/training', follow=True)
+        response = self.client.get('/exercises', follow=True)
         
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
@@ -342,14 +342,14 @@ class LearningPageViewTests(TestCase):
         }
         
         Word.objects.create(**bulgarian_word, added_by=self.user, studying_lang=self.bg)
-        response = self.client.get('/training')
+        response = self.client.get('/exercises')
         
         self.assertContains(response, status_code=200, text='start (bg-ru)')
         self.assertContains(response, status_code=200, text='start (ru-bg)')
         self.assertNotContains(response, text='username/password')
 
     def test_opening_learning_page_after_authorization_without_words(self):
-        response = self.client.get('/training')
+        response = self.client.get('/exercises')
         
         self.assertNotContains(response, status_code=200, text='start (bg-ru)')
         self.assertNotContains(response, status_code=200, text='start (ru-bg)')
@@ -363,7 +363,7 @@ class LearningPageViewTests(TestCase):
             'sentence': 'The children were all vaccinated against smallpox.',
         }
         word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
-        self.client.get('/training')
+        self.client.get('/exercises')
         response = self.client.get(f'/studying_to_native/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
@@ -375,7 +375,7 @@ class LearningPageViewTests(TestCase):
             'sentence': 'The children were all vaccinated against smallpox.',
         }
         word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
-        self.client.get('/training')
+        self.client.get('/exercises')
         response = self.client.get(f'/native_to_studying/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')

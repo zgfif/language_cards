@@ -2,7 +2,7 @@
 
 <!-- this snippets is used in navigation_bar.html  -->
 <li class="nav-item dropdown">
-    <a href="#" class="nav-link" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a href="#" class="nav-link" role="button" id="lang-indicator" data-bs-toggle="dropdown" aria-expanded="false">
 	        <!-- native language flag -->
 			<img src="{% static 'core/images/flags/ru_flag.png' %}" style="margin-top:0px;height:20px;width:20px">
 			<!-- studying language flag -->
@@ -25,5 +25,5 @@
 </li>
 
 <!-- script to change studying language on any page -->
-<script src="{% static 'core/js/switch_studying_language.js' %}"></script>
+<script src="{% static 'core/js/nav_switch_language.js' %}"></script>
 
