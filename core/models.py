@@ -97,6 +97,13 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user} studying: {self.studying_lang}'
 
+    @property
+    def available_languages(self):
+        if self.studying_lang:
+            return StudyingLanguage.objects.exclude(name=self.studying_lang.name) 
+        else: 
+            return StudyingLanguage.objects.all()
+
 
 
 class MyUser(User):

@@ -21,6 +21,7 @@ $(document).ready(function(){
 			headers: { 'Authorization': 'Token ' + auth_token}, 
 			success: function(result) {
 				update_current_studying_lang(value=result['full_lang_name']);
+                window.location.reload();
 			},
 			error: function() {
 				console.log('something went wrong');

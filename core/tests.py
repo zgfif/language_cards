@@ -1,20 +1,20 @@
 import json
 
-from django.core.exceptions import ValidationError
-from django.utils.timezone import localtime
-from django.core.files.base import ContentFile
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.timezone import localtime
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from core.lib.remove_file import RemoveFile
-from core.lib.remove_from_gcs import RemoveFromGcs
-from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
-from core.lib.translate_text import TranslateText
-from core.lib.next_list_item import NextListItem
 from core.lib.generate_audio import GenerateAudio
+from core.lib.next_list_item import NextListItem
+from core.lib.remove_file import RemoveFile
+from core.lib.translate_text import TranslateText
+# from core.lib.remove_from_gcs import RemoveFromGcs
+from core.models import GttsAudio, MyUser, Profile, StudyingLanguage, Word
 
 
 class IndexViewTests(TestCase):
@@ -145,7 +145,7 @@ class LogOutViewTests(TestCase):
         self.assertContains(response, text='Sign in', status_code=200)
 
 
-class AccountViewTests(TestCase):
+class ProfileViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')
@@ -254,10 +254,10 @@ class AddWordViewTests(TestCase):
             'sentence': 'To Jenner\'s relief James did not catch smallpox.',
         }
 
-        response = self.client.post('/add_word', self.word_details)
+        self.client.post('/add_word', self.word_details)
         self.assertEqual(Word.objects.count(), 1)
 
-        response = self.client.post('/add_word', almost_the_same_word)
+        self.client.post('/add_word', almost_the_same_word)
         self.assertEqual(Word.objects.count(), 1)
 
 
@@ -312,7 +312,7 @@ class WordListViewTests(TestCase):
         self.assertEqual(response.context['words'][0].word, 'factory')
 
 
-class LearningPageViewTests(TestCase):
+class ExercisesPageViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.credentials = {'username': 'pasha', "password": '1asdfX', 'email': 'pasha@gmail.com'}
@@ -326,7 +326,7 @@ class LearningPageViewTests(TestCase):
 
     def test_opening_learning_page_without_authorization(self):
         self.client.logout()
-        response = self.client.get('/training', follow=True)
+        response = self.client.get('/exercises', follow=True)
         
         self.assertContains(response, text='username/email', status_code=200)
         self.assertContains(response, text='password')
@@ -342,14 +342,14 @@ class LearningPageViewTests(TestCase):
         }
         
         Word.objects.create(**bulgarian_word, added_by=self.user, studying_lang=self.bg)
-        response = self.client.get('/training')
+        response = self.client.get('/exercises')
         
         self.assertContains(response, status_code=200, text='start (bg-ru)')
         self.assertContains(response, status_code=200, text='start (ru-bg)')
         self.assertNotContains(response, text='username/password')
 
     def test_opening_learning_page_after_authorization_without_words(self):
-        response = self.client.get('/training')
+        response = self.client.get('/exercises')
         
         self.assertNotContains(response, status_code=200, text='start (bg-ru)')
         self.assertNotContains(response, status_code=200, text='start (ru-bg)')
@@ -363,7 +363,7 @@ class LearningPageViewTests(TestCase):
             'sentence': 'The children were all vaccinated against smallpox.',
         }
         word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
-        self.client.get('/training')
+        self.client.get('/exercises')
         response = self.client.get(f'/studying_to_native/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
@@ -375,7 +375,7 @@ class LearningPageViewTests(TestCase):
             'sentence': 'The children were all vaccinated against smallpox.',
         }
         word = Word.objects.create(**english_word, added_by=self.user, studying_lang=self.en)
-        self.client.get('/training')
+        self.client.get('/exercises')
         response = self.client.get(f'/native_to_studying/{word.id}', follow=True)
 
         self.assertContains(response, status_code=200, text='smallpox')
@@ -1298,4 +1298,37 @@ class GenerateAudioTests(TestCase):
         self.assertEqual(word.gttsaudio_set.count(), 1)
         self.assertEqual(word.gttsaudio_set.first().use, 'sentence')
         word.delete()
-    
+
+
+class AvailableLanguagesTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create(username='pasha', email='pashaibratanov@gmail.com')
+        
+        cls.en = StudyingLanguage.objects.create(name='en')
+        cls.bg = StudyingLanguage.objects.create(name='bg')
+
+    def test_user_has_not_studying_language_test(self):
+        self.assertIsNone(self.user.profile.studying_lang)
+        
+        available_languages = self.user.profile.available_languages
+        
+        self.assertEqual(len(available_languages), 2)
+        self.assertIn(self.en, available_languages)
+        self.assertIn(self.bg, available_languages)
+
+
+    def test_user_has_studying_language(self):
+        self.user.profile.studying_lang = self.en
+        self.user.profile.save()
+
+        self.assertEqual(self.user.profile.studying_lang, self.en)
+        
+        available_languages = self.user.profile.available_languages
+        
+        self.assertEqual(len(available_languages), 1)
+        self.assertIn(self.bg, available_languages)
+        self.assertNotIn(self.en, available_languages)
+
+
+
