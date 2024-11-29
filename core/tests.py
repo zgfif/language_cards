@@ -1,20 +1,20 @@
 import json
 
-from django.core.exceptions import ValidationError
-from django.utils.timezone import localtime
-from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.timezone import localtime
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from core.lib.remove_file import RemoveFile
-# from core.lib.remove_from_gcs import RemoveFromGcs
-from core.models import Word, MyUser, GttsAudio, StudyingLanguage, Profile
-from core.lib.translate_text import TranslateText
-from core.lib.next_list_item import NextListItem
 from core.lib.generate_audio import GenerateAudio
+from core.lib.next_list_item import NextListItem
+from core.lib.remove_file import RemoveFile
+from core.lib.translate_text import TranslateText
+# from core.lib.remove_from_gcs import RemoveFromGcs
+from core.models import GttsAudio, MyUser, Profile, StudyingLanguage, Word
 
 
 class IndexViewTests(TestCase):
@@ -145,7 +145,7 @@ class LogOutViewTests(TestCase):
         self.assertContains(response, text='Sign in', status_code=200)
 
 
-class AccountViewTests(TestCase):
+class ProfileViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         User.objects.create_user(username='pasha', password='1asdfX', email='pasha@gmail.com')

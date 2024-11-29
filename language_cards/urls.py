@@ -35,7 +35,7 @@ urlpatterns = [
     path('signup', views.SignUpView.as_view()),
     path('signin', views.SignInView.as_view()),
     path('signout', views.SignOutView.as_view()),
-    path('profile', views.AccountView.as_view()),
+    path('profile', views.ProfileView.as_view()),
     path('add_word', views.AddWordView.as_view()),
     path('words', views.WordListView.as_view(), name='words'),
     path('exercises', views.ExercisesPageView.as_view()),
