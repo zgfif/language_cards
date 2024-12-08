@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
-
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
@@ -49,9 +48,15 @@ class Word(models.Model):
     know_native_to_studying = models.BooleanField(default=False)
     know_studying_to_native = models.BooleanField(default=False)
     studying_lang = models.ForeignKey(StudyingLanguage, on_delete=models.CASCADE)
+    stage = models.CharField(max_length=100, default='day')
+    times_in_row = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.word
+
+    def reset_progress(self):
+        self.know_native_to_studying, self.know_studying_to_native = False, False
+        self.save()
 
     @property
     def is_known(self):
