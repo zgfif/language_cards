@@ -25,9 +25,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpc
 
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
-ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    'language-cards-qvxp.onrender.com', 
+    'languagecards-production.up.railway.app', 
+    '127.0.0.1', 
+    'localhost',
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = [
+    'https://language-cards-qvxp.onrender.com',
+    'https://languagecards-production.up.railway.app', 
+    'http://127.0.0.1:8000',
+]
 
 # if it is True then all media files will be stored in GSC, in other case - locally on /media
 SAVE_MEDIA_ON_GSC = False
