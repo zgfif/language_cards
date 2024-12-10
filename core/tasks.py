@@ -4,7 +4,8 @@ from core.models import Word
 
 @shared_task
 def reset_word_progress(id):
-    word = Word.objects.get(id=id)
-    print('reseting', word)
-    word.reset_progress()
+    word = Word.objects.filter(id=id)
+    if word[0]:
+        print('reseting', word[0])
+        word[0].reset_progress()
 
