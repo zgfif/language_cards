@@ -187,7 +187,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # load gsc settings using env variables if we are deploying it on railway server
-if SAVE_MEDIA_ON_GSC and PRODUCTION_MODE:
+if SAVE_MEDIA_ON_GSC or PRODUCTION_MODE:
     GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
         info={
             "private_key": os.environ.get("private_key", False),
