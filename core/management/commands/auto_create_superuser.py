@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django.core.management.base import BaseCommand
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 import os
@@ -15,7 +17,7 @@ class Command(BaseCommand):
         SU_CREDENTIALS = { 'SU_USERNAME': SU_USERNAME, 'SU_EMAIL': SU_EMAIL, 'SU_PASSWORD': SU_PASSWORD }
 
         if SU_USERNAME and SU_EMAIL and SU_PASSWORD:
-            if User.objects.filter(username=SU_USERNAME).exists():
+            if User.objects.filter(Q(username=SU_USERNAME) | Q(email=SU_EMAIL)).exists():
                 self.print_warning('Superuser already exists')
             else:
                 User.objects.create_superuser(username=SU_USERNAME, email=SU_EMAIL, password=SU_PASSWORD)
