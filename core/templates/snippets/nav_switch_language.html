@@ -4,10 +4,10 @@
 <li class="nav-item dropdown">
     <a href="#" class="nav-link" role="button" id="lang-indicator" data-bs-toggle="dropdown" aria-expanded="false">
 	        <!-- native language flag -->
-			<img src="{% static 'core/images/flags/ru_flag.png' %}" style="margin-top:0px;height:20px;width:20px">
+			<img src="{% static 'core/images/flags/ru_flag.png' %}" style="margin-top:0px;height:20px;width:20px" alt="native_lang">
 			<!-- studying language flag -->
-			<img src="{% static 'core/images/flags/' %}/{{ request.user.profile.studying_lang }}_flag.png"
-                        style="margin-top:0px;height:20px;width:20px"'>
+			<img src="{% static 'core/images/flags/' %}{{ request.user.profile.studying_lang }}_flag.png"
+                        style="margin-top:0px;height:20px;width:20px"' alt="studying_lang">
     </a>
     <ul class="dropdown-menu">
         <!-- auth_token to switch language -->
@@ -16,8 +16,8 @@
         <li >
                 <button class="dropdown-item languageSelect" type="button" data-id="{{ language }}">
                     {{ language.full_name }}
-                    <img src="{% static 'core/images/flags/' %}/{{ language }}_flag.png" 
-                        style="margin-top:0px;height:16px;width:16px"'>
+                    <img src="{% static 'core/images/flags/' %}{{ language }}_flag.png" 
+                        style="margin-top:0px;height:16px;width:16px"' alt="studying_lang">
                 </button>
             </li>
         {% endfor %}

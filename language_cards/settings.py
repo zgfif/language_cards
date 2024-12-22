@@ -25,9 +25,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-xiwq@wx7n*g5)kpk$gwpc
 
 # For example, for a site URL at 'web-production-3640.up.railway.app'
 # (replace the string below with your own site URL):
-ALLOWED_HOSTS = ['languagecards-production.up.railway.app', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    'language-cards-qvxp.onrender.com', 
+    'languagecards-production.up.railway.app', 
+    '127.0.0.1', 
+    'localhost',
+]
 
-CSRF_TRUSTED_ORIGINS = ['https://languagecards-production.up.railway.app', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = [
+    'https://language-cards-qvxp.onrender.com',
+    'https://languagecards-production.up.railway.app', 
+    'http://127.0.0.1:8000',
+]
 
 # if it is True then all media files will be stored in GSC, in other case - locally on /media
 SAVE_MEDIA_ON_GSC = False
@@ -54,6 +63,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'django_extensions',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -239,3 +250,18 @@ SOCIALACCOUNT_PROVIDERS = {
 
     },
 }
+
+if PRODUCTION_MODE:
+    SOCIALACCOUNT_PROVIDERS['google']['REDIRECT_URI'] = 'https://language-cards-qvxp.onrender.com/accounts/google/login/callback/'
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# for production create env variable INTERNAL_REDIS_URL
+INTERNAL_REDIS_URL = os.environ.get('INTERNAL_REDIS_URL', '')
+
+if INTERNAL_REDIS_URL:
+    CELERY_BROKER_URL = INTERNAL_REDIS_URL
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+

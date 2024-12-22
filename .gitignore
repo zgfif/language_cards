@@ -34,3 +34,10 @@ core/api/__pycache__/core/lib/__pycache__/next_list_item.cpython-310.pyc
 core/api/__pycache__/
 core/lib/__pycache__/next_list_item.cpython-310.pyc
 media/
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
+core/lib/__pycache__/calculate_reset.cpython-312.pyc
+core/lib/__pycache__/update_word_progress.cpython-312.pyc
+core/management/commands/__pycache__/__init__.cpython-312.pyc
+core/management/commands/__pycache__/auto_create_superuser.cpython-312.pyc

@@ -15,6 +15,8 @@ from core.lib.remove_file import RemoveFile
 from core.lib.translate_text import TranslateText
 # from core.lib.remove_from_gcs import RemoveFromGcs
 from core.models import GttsAudio, MyUser, Profile, StudyingLanguage, Word
+from core.lib.calculate_reset import CalculateReset
+from core.lib.update_word_progress import UpdateWordProgress
 
 
 class IndexViewTests(TestCase):
@@ -718,6 +720,21 @@ class ResetProgressTests(TestCase):
         self.assertTrue(word.know_native_to_studying)
         self.assertTrue(word.know_studying_to_native)
 
+    def test_reset_word_method(self):
+        word = Word.objects.get(id=self.word.id)
+        word.times_in_row = 2
+        word.stage = 'month'
+        word.save()
+
+        self.assertTrue(word.know_native_to_studying)
+        self.assertTrue(word.know_studying_to_native)
+        word.reset_progress()
+        self.assertEqual(word.times_in_row, 0)
+        self.assertEqual(word.stage, 'day')
+        self.assertFalse(word.know_native_to_studying)
+        self.assertFalse(word.know_studying_to_native)
+
+
 
 class WordIdsTests(TestCase):
     def setUp(self):
@@ -1331,4 +1348,263 @@ class AvailableLanguagesTests(TestCase):
         self.assertNotIn(self.en, available_languages)
 
 
+class CalculateResetTests(TestCase):
+    def test_calc_reset_for_new_word(self):
+        stage = 'day'
+        times_in_row = 0
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 1)
+        self.assertEqual(result.stage, 'day')
+
+
+    def test_calc_reset_for_daily_word(self):
+        stage = 'day'
+        times_in_row = 3
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 7)
+        self.assertEqual(result.stage, 'week')
+
+
+    def test_calc_reset_for_first_weekly_word(self):
+        stage = 'week'
+        times_in_row = 0
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 7)
+        self.assertEqual(result.stage, 'week')
+
+        
+    def test_calc_reset_for_weekly_word(self):
+        stage = 'week'
+        times_in_row = 3
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 30)
+        self.assertEqual(result.stage, 'month')
+
+    def test_calc_reset_for_first_month_word(self):
+        stage = 'month'
+        times_in_row = 0
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 30)
+        self.assertEqual(result.stage, 'month')
+
+    def test_calc_reset_for_month_word(self):
+        stage = 'month'
+        times_in_row = 3
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 90)
+        self.assertEqual(result.stage, 'three_month')
+        
+    def test_calc_reset_for_first_three_month_word(self):
+        stage = 'three_month'
+        times_in_row = 0
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 90)
+        self.assertEqual(result.stage, 'three_month')
+
+
+    def test_calc_reset_for_three_month_word(self):
+        stage = 'three_month'
+        times_in_row = 3
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 180)
+        self.assertEqual(result.stage, 'half_year')
+
+    def test_calc_reset_first_half_year_word(self):
+        stage = 'half_year'
+        times_in_row = 0
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 180)
+        self.assertEqual(result.stage, 'half_year')
+
+    def test_calc_reset_well_known_word(self):
+        stage = 'half_year'
+        times_in_row = 3
+
+        result = CalculateReset(stage=stage, times_in_row=times_in_row).perform()
+        
+        self.assertEqual(result.reset_in_days, 180)
+        self.assertEqual(result.stage, 'half_year')
+
+    
+
+
+class UpdateWordProgressTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='pasha', email='mail@example.com')
+        cls.studying_language = StudyingLanguage.objects.create(name='en')
+        word_details = {
+                'word': 'smallpox',
+                'translation': 'оспа',
+                'sentence': 'Smallpox is dangerous disease for humans.'
+            }
+
+        cls.word = Word.objects.create(added_by=cls.user, 
+                                   studying_lang=cls.studying_language, 
+                                   **word_details)
+
+
+    def test_change_progress_for_newly_word(self):
+        self.assertEqual(self.word.stage, 'day')
+        self.assertEqual(self.word.times_in_row, 0)
+        
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'day')
+        self.assertEqual(word.times_in_row, 1)
+
+    def test_change_reset_date_second_time_day_word(self):
+        self.word.stage = 'day'
+        self.word.times_in_row = 1
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'day')
+        self.assertEqual(word.times_in_row, 2)
+
+    
+    def test_change_reset_date_third_time_day_word(self):
+        self.word.stage = 'day'
+        self.word.times_in_row = 2
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'day')
+        self.assertEqual(word.times_in_row, 3)
+
+
+    def test_change_reset_date_fourth_day_word(self):
+        self.word.stage = 'day'
+        self.word.times_in_row = 3
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'week')
+        self.assertEqual(word.times_in_row, 0)
+
+    def test_change_reset_date_first_week_word(self):
+        self.word.stage = 'week'
+        self.word.times_in_row = 0
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'week')
+        self.assertEqual(word.times_in_row, 1)
+
+    def test_change_reset_date_third_week_word(self):
+        self.word.stage = 'week'
+        self.word.times_in_row = 3
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'month')
+        self.assertEqual(word.times_in_row, 0)
+
+
+    def test_change_reset_date_first_month_word(self):
+        self.word.stage = 'month'
+        self.word.times_in_row = 0
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'month')
+        self.assertEqual(word.times_in_row, 1)
+
+    def test_change_reset_date_third_month_word(self):
+        self.word.stage = 'month'
+        self.word.times_in_row = 3
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'three_month')
+        self.assertEqual(word.times_in_row, 0)
+
+
+    def test_change_reset_date_first_three_month_word(self):
+        self.word.stage = 'three_month'
+        self.word.times_in_row = 0
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'three_month')
+        self.assertEqual(word.times_in_row, 1)
+
+    def test_change_reset_date_third_three_month_word(self):
+        self.word.stage = 'three_month'
+        self.word.times_in_row = 3
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'half_year')
+        self.assertEqual(word.times_in_row, 0)
+
+    def test_change_reset_date_firsth_half_year_word(self):
+        self.word.stage = 'half_year'
+        self.word.times_in_row = 0
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'half_year')
+        self.assertEqual(word.times_in_row, 1)
+
+    def test_change_reset_date_fifth_half_year_word(self):
+        self.word.stage = 'half_year'
+        self.word.times_in_row = 5
+        
+        self.word.save()
+        UpdateWordProgress(self.word).perform()
+        
+        word = Word.objects.last()
+
+        self.assertEqual(word.stage, 'half_year')
+        self.assertEqual(word.times_in_row, 6)
 

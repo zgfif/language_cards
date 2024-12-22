@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from rest_framework.authtoken.models import Token
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
@@ -14,6 +13,8 @@ from core.lib.next_list_item import NextListItem
 from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
+from core.tasks import reset_word_progress
+from core.lib.update_word_progress import UpdateWordProgress
 
 
 class IndexView(View):
@@ -22,10 +23,10 @@ class IndexView(View):
         context = {}
 
         if request.user.is_authenticated:
-            words = Word.objects.filter(added_by=request.user, studying_lang=request.user.profile.studying_lang)
+            words = Word.objects.filter(added_by=request.user, 
+                                        studying_lang=request.user.profile.studying_lang)
 
             context['has_words'] = True if words else False
-
             # update learning ids
             WordIds(request, words).update()
 
@@ -163,7 +164,8 @@ class ExercisesPageView(View):
                 'auth_token': request.user.auth_token
             }
             
-            user_words = Word.objects.filter(added_by=request.user.id, studying_lang=request.user.profile.studying_lang)
+            user_words = Word.objects.filter(added_by=request.user.id, 
+                                             studying_lang=request.user.profile.studying_lang)
             
             unknown_studying_to_native = user_words.filter(know_studying_to_native=False)
             unknown_native_to_studying = user_words.filter(know_native_to_studying=False)
@@ -217,10 +219,14 @@ class StudyingToNativeCard(View):
         word = get_object_or_404(Word, id=id)
 
         if word.added_by == request.user:
+            correctness = obj['correctness']
+            if correctness:
+                UpdateWordProgress(word).perform()
+
             if obj['direction'] == 'studying_to_native':
-                word.know_studying_to_native = obj['correctness']
+                word.know_studying_to_native = correctness
             else:
-                word.know_native_to_studying = obj['correctness']
+                word.know_native_to_studying = correctness
 
             word.save()
         return JsonResponse(data={'status': 'ok'})
@@ -287,8 +293,7 @@ class ResetWordView(View):
         word = get_object_or_404(Word, id=id)
 
         if request.user.is_authenticated and word.added_by == request.user:
-            word.know_native_to_studying, word.know_studying_to_native = False, False
-            word.save()
+            word.reset_progress()
         return redirect('/words')
 
 
