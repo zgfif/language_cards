@@ -17,5 +17,6 @@ class UpdateWordProgress:
 
     def add_task(self, days):
         # for test purposes we set 100 seconds for first run
-        reset_word_progress.apply_async((self._word.pk,), countdown=days * 24 * 60 * 60)
+        # reset_word_progress.apply_async((self._word.pk,), countdown=days * 24 * 60 * 60)
+        reset_word_progress.apply_async((self._word.pk,), countdown=days * 400)
 
