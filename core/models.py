@@ -56,6 +56,8 @@ class Word(models.Model):
 
     def reset_progress(self):
         self.know_native_to_studying, self.know_studying_to_native = False, False
+        self.stage = 'day'
+        self.times_in_row = 0
         self.save()
 
     @property

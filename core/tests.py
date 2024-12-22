@@ -722,10 +722,15 @@ class ResetProgressTests(TestCase):
 
     def test_reset_word_method(self):
         word = Word.objects.get(id=self.word.id)
-        
+        word.times_in_row = 2
+        word.stage = 'month'
+        word.save()
+
         self.assertTrue(word.know_native_to_studying)
         self.assertTrue(word.know_studying_to_native)
         word.reset_progress()
+        self.assertEqual(word.times_in_row, 0)
+        self.assertEqual(word.stage, 'day')
         self.assertFalse(word.know_native_to_studying)
         self.assertFalse(word.know_studying_to_native)
 
