@@ -255,6 +255,13 @@ if PRODUCTION_MODE:
     SOCIALACCOUNT_PROVIDERS['google']['REDIRECT_URI'] = 'https://language-cards-qvxp.onrender.com/accounts/google/login/callback/'
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# for production create env variable INTERNAL_REDIS_URL
+INTERNAL_REDIS_URL = os.environ.get('INTERNAL_REDIS_URL', '')
+
+if INTERNAL_REDIS_URL:
+    CELERY_BROKER_URL = INTERNAL_REDIS_URL
+
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
