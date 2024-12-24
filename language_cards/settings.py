@@ -238,6 +238,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'EMAIL_AUTHENTICATION': True,
         'SCOPE': [
             'profile',
             'email',

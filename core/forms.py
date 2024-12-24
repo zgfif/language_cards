@@ -1,4 +1,3 @@
-import time
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, get_user_model
@@ -6,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core import validators
 
 from core.lib.generate_audio import GenerateAudio
-from core.models import Word, StudyingLanguage, STUDYING_LANGUAGES
+from core.models import Word, STUDYING_LANGUAGES
 
 
 class SignInForm(forms.Form):
@@ -26,11 +25,11 @@ class SignInForm(forms.Form):
             raise forms.ValidationError('Incorrect username/email/password')
 
     def auth(self, request):
-        user = authenticate(request, **self.cleaned_data)
-        if user is not None:
+        user = authenticate(**self.cleaned_data)
+        
+        if user:
             messages.success(request, f'Hello! {user}')
             login(request, user)
-        return user
 
 
 class SignUpForm(forms.Form):

@@ -2,6 +2,7 @@
 
 import datetime
 from django.db import migrations, models
+import datetime
 
 
 class Migration(migrations.Migration):
@@ -14,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='word',
             name='reset_date',
-            field=models.DateTimeField(default=datetime.datetime(2024, 12, 6, 18, 58, 59, 695150)),
+            field=models.DateTimeField(default=datetime.datetime(2024, 12, 6, 18, 58, 59, 695150, tzinfo=datetime.timezone.utc)),
         ),
         migrations.AddField(
             model_name='word',
