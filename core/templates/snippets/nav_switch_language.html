@@ -2,25 +2,29 @@
 
 <!-- this snippets is used in navigation_bar.html  -->
 <li class="nav-item dropdown">
-    <a href="#" class="nav-link" role="button" id="lang-indicator" data-bs-toggle="dropdown" aria-expanded="false">
-	        <!-- native language flag -->
+    <a class="nav-link" role="button" id="lang-indicator" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if studying_lang %}
+        <!-- native language flag -->
 			<img src="{% static 'core/images/flags/ru_flag.png' %}" style="margin-top:0px;height:20px;width:20px" alt="native_lang">
 			<!-- studying language flag -->
 			<img src="{% static 'core/images/flags/' %}{{ request.user.profile.studying_lang }}_flag.png"
                         style="margin-top:0px;height:20px;width:20px"' alt="studying_lang">
+        {% else %}
+            <bold style="color: green">click here to choose studying language</bold>
+        {% endif %}
     </a>
     <ul class="dropdown-menu">
         <!-- auth_token to switch language -->
         <input type="hidden" id="auth_token" data-auth_token="{{ auth_token }}">
-        {% for language in other_languages %}
-        <li >
-                <button class="dropdown-item languageSelect" type="button" data-id="{{ language }}">
-                    {{ language.full_name }}
-                    <img src="{% static 'core/images/flags/' %}{{ language }}_flag.png" 
-                        style="margin-top:0px;height:16px;width:16px"' alt="studying_lang">
-                </button>
-            </li>
-        {% endfor %}
+            {% for language in other_languages %}
+                <li>
+                    <button class="dropdown-item languageSelect" type="button" data-id="{{ language }}">
+                        {{ language.full_name }}
+                        <img src="{% static 'core/images/flags/' %}{{ language }}_flag.png" 
+                            style="margin-top:0px;height:16px;width:16px"' alt="studying_lang">
+                    </button>
+                </li>
+            {% endfor %}
     </ul>
 </li>
 
