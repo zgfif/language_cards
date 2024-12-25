@@ -32,7 +32,7 @@ class IndexView(View):
 
             context['other_languages'] = request.user.profile.available_languages
             context['auth_token'] = request.user.auth_token
-
+            context['studying_lang'] = request.user.profile.studying_lang
             context['studying_to_native_ids'] = request.session.get('studying_to_native_ids', [])
             context['native_to_studying_ids'] = request.session.get('native_to_studying_ids', [])
         return render(request=request, template_name=template_name, context=context)
@@ -70,7 +70,8 @@ class SignInView(FormView):
 class SignOutView(View):
     def get(self, request):
         logout(self.request)
-        return render(request=request, template_name='index.html')
+        messages.success(request, 'See ya!')
+        return redirect('/')
 
 
 class ProfileView(View):
@@ -85,6 +86,7 @@ class ProfileView(View):
                     'unknown': profile.unknown_words.count(),
                     'form': StudyingLanguageForm,
                     'other_languages': request.user.profile.available_languages,
+                    'studying_lang': request.user.profile.studying_lang,
             }
 
             return render(request=request, template_name='profile.html', context=context)
@@ -105,6 +107,7 @@ class AddWordView(TemplateView):
         # this is used to switch studying language in two clicks 
         context.update({
             'auth_token': self.request.user.auth_token,
+            'studying_lang': self.request.user.profile.studying_lang,
             'other_languages': self.request.user.profile.available_languages,
             'form': AddWordForm(),
         })
@@ -143,6 +146,7 @@ class WordListView(View):
                 'native_to_studying_ids': request.session.get('native_to_studying_ids'),
                 'auth_token': request.user.auth_token,
                 'other_languages': request.user.profile.available_languages,
+                'studying_lang': request.user.profile.studying_lang,
             }
             
             if studying_lang: 
@@ -161,7 +165,8 @@ class ExercisesPageView(View):
             # other_languages and auth_token are used to switch studying language in nav bar
             context = {
                 'other_languages': request.user.profile.available_languages, 
-                'auth_token': request.user.auth_token
+                'auth_token': request.user.auth_token,
+                'studying_lang': request.user.profile.studying_lang,
             }
             
             user_words = Word.objects.filter(added_by=request.user.id, 

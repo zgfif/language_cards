@@ -9,7 +9,8 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from core.lib.audio_file_path import AudioFilePath
 from core.lib.remove_file import RemoveFile
-from core.lib.remove_from_gcs import RemoveFromGcs
+# please, uncomment line below when use Goolge Cloud Storage
+# from core.lib.remove_from_gcs import RemoveFromGcs
 from language_cards import settings
 
 # these languages will be used in as possible target languages
