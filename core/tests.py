@@ -143,7 +143,7 @@ class LogOutViewTests(TestCase):
 
         self.assertContains(response_before_logout, text='Sign out', status_code=200)
 
-        response = self.client.get('/signout')
+        response = self.client.get('/signout', follow=True)
         self.assertContains(response, text='Sign in', status_code=200)
 
 
@@ -160,7 +160,7 @@ class ProfileViewTests(TestCase):
     def test_access_to_account_with_authorization(self):
         self.client.login(username='pasha', password='1asdfX')
 
-        response = self.client.get('/profile')
+        response = self.client.get('/profile', follow=True)
 
         self.assertContains(response, text='pasha', status_code=200)
         self.assertContains(response, text='pasha@gmail.com', status_code=200)
