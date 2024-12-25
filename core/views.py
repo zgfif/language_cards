@@ -70,7 +70,8 @@ class SignInView(FormView):
 class SignOutView(View):
     def get(self, request):
         logout(self.request)
-        return render(request=request, template_name='index.html')
+        messages.success(request, 'See ya!')
+        return redirect('/')
 
 
 class ProfileView(View):
