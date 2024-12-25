@@ -110,7 +110,8 @@ function fillTableWithData(results = false, performClearingTable = true) {
 				    `;
 
 		    } else {
-                    	innerRow3.innerHTML =  word['sentence'];
+                    innerRow3.innerHTML =  word['sentence'];
+                    innerRow3.setAttribute('style', 'height:1.525em');
 		    }
 
                     // add new cell to "main" row for dropdown menu (three dots sign)
