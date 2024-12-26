@@ -13,7 +13,7 @@ from core.lib.next_list_item import NextListItem
 from core.lib.translate_text import TranslateText
 from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
-from core.tasks import reset_word_progress
+# from core.tasks import reset_word_progress
 from core.lib.update_word_progress import UpdateWordProgress
 
 
@@ -209,7 +209,8 @@ class StudyingToNativeCard(View):
                 'studying_language': word.studying_lang, 
                 'ids': ids, 
                 'next_id': next_id, 
-                'direction': self.DIRECTION
+                'direction': self.DIRECTION,
+                'studying_lang': word.studying_lang, # this variable has influence on notification 'please, choose studying..'
             }
 
             return render(request, template_name='translation_exercise.html', context=context)
@@ -278,7 +279,8 @@ class EditWordView(TemplateView):
             'form': AddWordForm(initial=initial_values), 
             'sl_short': item.studying_lang, 
             'sl_full': item.studying_lang.full_name,
-            'auth_token': request.user.auth_token
+            'auth_token': request.user.auth_token,
+            'studying_lang': request.user.profile.studying_lang,
         }
 
         return render(request, template_name='edit_word.html', context=context)
