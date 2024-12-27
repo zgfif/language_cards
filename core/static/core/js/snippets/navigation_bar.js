@@ -1,30 +1,50 @@
 $( document ).ready(function() {
-    let cookies = document.cookie.split(';');
+    const cookiesTheme = retrieveThemeFromCookies();
     
-    let obj = {}
-    for (const x of cookies) {
-        pair = x.split('=');
-        obj[pair[0]] = pair[1]
-    }
+    if (cookiesTheme) { applyTheme(cookiesTheme); };
 
-    if (obj.hasOwnProperty(' theme')) {
-        const theme = obj[' theme'];
-        $('html:first').attr('data-bs-theme', theme);
-        $('#themeBtn').attr('src', '/static/core/images/' + theme + '_btn.png'); 
-    };
+    $('#themeBtn').click(() => {
+        let newTheme = $('html:first').attr('data-bs-theme') == 'dark' ? 'light' : 'dark'; // retrieving new theme (value can be 'light' or 'dark')
 
-    $('#themeBtn').click((event) => {
-        const html = $('html:first');
+        applyTheme(newTheme);
 
-
-        if (html.attr('data-bs-theme') == 'dark') {
-            html.attr('data-bs-theme', 'light');
-            $(event.target).attr('src', '/static/core/images/light_btn.png');
-            document.cookie = "theme=light";
-        } else {
-            html.attr('data-bs-theme', 'dark');
-            $(event.target).attr('src', '/static/core/images/dark_btn.png');
-            document.cookie = "theme=dark";
-        };
+        saveThemeToCookies(newTheme);
     });
 });
+
+
+
+function retrieveThemeFromCookies() {
+    let cookiesTheme = false;
+
+    let cookies = document.cookie.split('; '); // retrieving cookies string and split it in array ['key=value', 'key=value']
+
+    let cookiesObject = {};
+
+    // convert 'key=value' pairs to objects [{'key1': 'value1'}, ...]
+    for (const x of cookies) {
+        pair = x.split('=');
+        cookiesObject[pair[0]] = pair[1];
+    };
+
+    if (cookiesObject.hasOwnProperty('theme')) { cookiesTheme = cookiesObject['theme']; };
+
+    return cookiesTheme;
+};
+
+
+
+function saveThemeToCookies(theme='') {
+    if (theme) { document.cookie = `theme=${theme}`; }; // save new theme to cookies of browser
+};
+
+
+
+function applyTheme(theme='') {
+    if (theme) {
+        $('html:first').attr('data-bs-theme', theme); // set theme from cookies to page
+        
+        $('#themeBtn').attr('src', `/static/core/images/${theme}_btn.png`); // set theme button for current page
+    };
+};
+
