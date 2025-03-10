@@ -34,3 +34,7 @@ input {
 #playBtnSentence {
     cursor: pointer;
  }
+
+ #card {
+   padding-top: 40px;
+ }
