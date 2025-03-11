@@ -8,16 +8,18 @@
             <br>
             {% if user.is_authenticated %}
                 <!-- User is signed in -->
-                {% if has_words %}
-                    {% if native_to_studying_ids or studying_to_native_ids %}
-                        <p style="text-align:center;"><a class="btn btn-primary" href="/exercises">train new words</a></p>
+                <p>
+                    <a class="btn btn-primary" href="/add_word">add word</a>
+                    {% if has_words %}
+                        {% if native_to_studying_ids or studying_to_native_ids %}
+                            <a class="btn btn-primary" href="/exercises">train new words</a></p>
+                        {% else %}
+                            {% include 'snippets/nothing_to_learn.html' %}
+                        {% endif %}
                     {% else %}
-                        {% include 'snippets/nothing_to_learn.html' %}
+                        Nothing to train. You haven't added any words.
+                </p>
                     {% endif %}
-                {% else %}
-                    <h3 style="text-align:center;">nothing to train</h3>
-                    <p>You haven't added any words. <a href="/add_word">add word</a></p>
-                {% endif %}
             {% else %}
 
                 <!-- User is not signed in -->
