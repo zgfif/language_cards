@@ -1619,9 +1619,12 @@ class CalculateProgressTests(TestCase):
         cls.bg = StudyingLanguage.objects.create(name='bg')
 
     def test_user_progress_without_any_words(self):
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), None)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), None)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), None)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), None)
+        self.assertEqual(calc.perform('native_to_studying'), None)
+        self.assertEqual(calc.perform('studying_to_native'), None)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), None)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), None)
 
 
 
@@ -1636,9 +1639,13 @@ class CalculateProgressTests(TestCase):
                                    studying_lang=self.en, 
                                    **word_details)
         
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 0)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 0)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 0)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 0)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 0)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 0)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), 0)
+        self.assertEqual(calc.perform('native_to_studying'), 0)
+        self.assertEqual(calc.perform('studying_to_native'), 0)
         word.delete()
 
     def test_user_progress_with_one_studyied_word(self):
@@ -1654,9 +1661,13 @@ class CalculateProgressTests(TestCase):
                                 know_studying_to_native=True,
                                    **word_details)
         
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 100)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 100)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 100)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 100)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 100)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 100)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), 100)
+        self.assertEqual(calc.perform('native_to_studying'), 100)
+        self.assertEqual(calc.perform('studying_to_native'), 100)
         word.delete()
 
     def test_user_progress_with_one_studyied_and_one_unstudyied_word(self):
@@ -1678,9 +1689,13 @@ class CalculateProgressTests(TestCase):
         for word in words:
             Word.objects.create(added_by=self.user, studying_lang=self.en, **word)
         
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 50)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 50)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 50)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 50)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 50)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 50)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), 50)
+        self.assertEqual(calc.perform('native_to_studying'), 50)
+        self.assertEqual(calc.perform('studying_to_native'), 50)
 
 
     def test_user_progress_with_one_studyied_and_two_unstudyied_word(self):
@@ -1707,9 +1722,13 @@ class CalculateProgressTests(TestCase):
         for word in words:
             Word.objects.create(added_by=self.user, studying_lang=self.en, **word)
         
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 33.33)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 33.33)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 33.33)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 33.33)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 33.33)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 33.33)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), 33.33)
+        self.assertEqual(calc.perform('native_to_studying'), 33.33)
+        self.assertEqual(calc.perform('studying_to_native'), 33.33)
 
 
     def test_user_progress_with_one_studyied_one_partly_studyied_and_one_unstudyied_word(self):
@@ -1737,6 +1756,11 @@ class CalculateProgressTests(TestCase):
         for word in words:
             Word.objects.create(added_by=self.user, studying_lang=self.en, **word)
         
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 33.33)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 66.67)
-        self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 33.33)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).total(), 33.33)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).native_to_studying(), 66.67)
+        # self.assertEqual(CalculateUserProgress(user=self.user, studying_lang=self.en).studying_to_native(), 33.33)
+        calc = CalculateUserProgress(user=self.user, studying_lang=self.en)
+        self.assertEqual(calc.perform('total'), 33.33)
+        self.assertEqual(calc.perform('native_to_studying'), 66.67)
+        self.assertEqual(calc.perform('studying_to_native'), 33.33)
+        
