@@ -15,6 +15,7 @@ from core.models import Word, MyUser
 from core.lib.word_ids import WordIds
 # from core.tasks import reset_word_progress
 from core.lib.update_word_progress import UpdateWordProgress
+from core.lib.calculate_user_progress import CalculateUserProgress
 
 
 class IndexView(View):
@@ -35,6 +36,8 @@ class IndexView(View):
             context['studying_lang'] = request.user.profile.studying_lang
             context['studying_to_native_ids'] = request.session.get('studying_to_native_ids', [])
             context['native_to_studying_ids'] = request.session.get('native_to_studying_ids', [])
+            context['native_studying_progress'] = CalculateUserProgress(request.user, request.user.profile.studying_lang).native_to_studying()
+            context['studying_native_progress'] = CalculateUserProgress(request.user, request.user.profile.studying_lang).studying_to_native()
         return render(request=request, template_name=template_name, context=context)
 
 

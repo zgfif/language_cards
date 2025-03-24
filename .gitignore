@@ -41,3 +41,4 @@ core/lib/__pycache__/calculate_reset.cpython-312.pyc
 core/lib/__pycache__/update_word_progress.cpython-312.pyc
 core/management/commands/__pycache__/__init__.cpython-312.pyc
 core/management/commands/__pycache__/auto_create_superuser.cpython-312.pyc
+core/lib/__pycache__/calculate_user_progress.cpython-312.pyc
