@@ -178,6 +178,7 @@ class ExercisesPageView(View):
                 'other_languages': request.user.profile.available_languages, 
                 'auth_token': request.user.auth_token,
                 'studying_lang': request.user.profile.studying_lang,
+                'sl_full_name': request.user.profile.studying_lang.full_name if request.user.profile.studying_lang else None,
             }
             
             user_words = Word.objects.filter(added_by=request.user.id, 
@@ -189,7 +190,12 @@ class ExercisesPageView(View):
             native_word = unknown_studying_to_native.first().id if unknown_studying_to_native else None
             studying_word = unknown_native_to_studying.first().id if unknown_native_to_studying else None
 
-            context.update({'learn_ru_word': native_word, 'learn_en_word': studying_word})
+
+            context.update({'learn_ru_word': native_word, 
+                            'learn_en_word': studying_word, 
+                            'count_unknown_native_to_studying': unknown_native_to_studying.count(),
+                            'count_unknown_studying_to_native': unknown_studying_to_native.count(),
+                })
             
             studying_lang = request.user.profile.studying_lang
 
