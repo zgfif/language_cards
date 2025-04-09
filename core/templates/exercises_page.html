@@ -3,18 +3,39 @@
 {% block content %}
     <div class="container">
         <div style="text-align:center">
-            <br>
-            {% if learn_ru_word %}
-                <a href="/studying_to_native/{{ learn_ru_word }}">
-			<button class="btn btn-primary" type="button">start ({{ sl_short }}-ru)</button>
-                </a>
-            {% endif %}
+            <div class="row" style="padding-top: 20px;">
+                <div class="col-sm-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Russian to {{ sl_full_name }} Exercise</h5>
+                      <p class="card-text">It'll help you improve your vocabulary</p>
+                        
+                        {% if learn_en_word %}
+                        <a href="/native_to_studying/{{ learn_en_word }}">
+                            <button class="btn btn-primary" type="button">start (ru-{{ sl_short }}) {{ count_unknown_native_to_studying }}</button>
+                        </a>
+                        {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ sl_full_name }} to Russian Exercise</h5>
+                      <p class="card-text">This exercise will improve your reading skills.</p>
+                      {% if learn_ru_word %}
+                            <a href="/studying_to_native/{{ learn_ru_word }}">
+                                <button class="btn btn-primary" type="button">start ({{ sl_short }}-ru) {{ count_unknown_studying_to_native }}</button>
+                            </a>  
+                      {% endif %}
+                     
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            {% if learn_en_word %}
-                <a href="/native_to_studying/{{ learn_en_word }}">
-                    <button class="btn btn-primary" type="button">start (ru-{{ sl_short }})</button>
-                </a>
-            {% endif %}
+
+            <br>
 
             {% if not learn_ru_word and not learn_en_word %}
                 {% include 'snippets/nothing_to_learn.html' %}
