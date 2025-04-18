@@ -245,7 +245,7 @@ class AddWordViewTests(TestCase):
 
     def test_redirection_after_successful_adding_word(self):
         response = self.client.post('/add_word', self.word_details, follow=True)
-        path = reverse('words')
+        path = reverse('add_word')
 
         self.assertContains(response, text='successfully added', status_code=200)
         self.assertEqual(path, response.redirect_chain[-1][0])

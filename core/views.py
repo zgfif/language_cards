@@ -138,7 +138,7 @@ class AddWordView(TemplateView):
         
         if form.is_valid():
             form.save(request)
-            return redirect(reverse('words'))
+            return redirect(reverse('add_word'))
         return self.render_to_response(context={'form': form})
 
 
